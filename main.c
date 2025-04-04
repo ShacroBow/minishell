@@ -4,6 +4,7 @@
 int main (int argc, char **argv, char **envp)
 {
 	char *prompt;
+	//text conflict
 	char *input;
 
 	if (argc > 1)
