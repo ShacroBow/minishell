@@ -12,7 +12,8 @@ int main (int argc, char **argv, char **envp)
 		return (EXIT_FAILURE);
 	}
 	(void)envp;
-	prompt = argv[0];
+	(void)argv;
+	prompt = "hey";
 	while (1)
 	{
 		input = readline(prompt);
