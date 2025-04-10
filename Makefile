@@ -5,7 +5,7 @@ OBJ = $(SRC:%.c=$(OBJ_DIR)%.o)
 LIBFT_PATH = ./libft/
 LIBFT = libft.a
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address,undefined
 LIBFLAGS = -L. $(LIBFT_PATH)$(LIBFT) -lreadline
 
 

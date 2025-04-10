@@ -186,8 +186,6 @@ int execute_command(const char *cmd, char *envp[]) {
 
 int main(int argc, char *argv[], char *envp[]) {
 	char *command = NULL;
-	//to execute the program correctly youll have to write ./a.out "echo hello"
-	// or it will default on hello world
 	if (argc != 2)
 	{
 		command = "echo Hello, World!";
