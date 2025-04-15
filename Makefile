@@ -1,5 +1,5 @@
 NAME = minishell
-SRC =	main.c
+SRC =	main.c ft_signalhandle.c
 OBJ_DIR = ./dir/
 OBJ = $(SRC:%.c=$(OBJ_DIR)%.o)
 LIBFT_PATH = ./libft/

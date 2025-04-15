@@ -1,6 +1,10 @@
 
 #include "minishell.h"
 
+
+extern int g_signal;
+
+
 int main (int argc, char **argv, char **envp)
 {
 	char *prompt;
@@ -11,6 +15,7 @@ int main (int argc, char **argv, char **envp)
 		ft_putstr_fd("minishell does not accept arguments", 2);
 		return (EXIT_FAILURE);
 	}
+	ft_signalhandle();
 	(void)envp;
 	(void)argv;
 	prompt = "Minishell>";
@@ -20,6 +25,9 @@ int main (int argc, char **argv, char **envp)
 	{
 		input = readline(prompt);
 		add_history(input);
+		//add ft_parse here.
+		
+		//replace with ft_execute
 		if (ft_strcmp(input, "exit") == 0)
 		{
 			free(input);
@@ -32,6 +40,7 @@ int main (int argc, char **argv, char **envp)
 		{
 			printf("%2d[%s]\n", i, input);
 		}
+		//replace with ft_execute
 		rl_on_new_line();
 		i++;
 		free(input);

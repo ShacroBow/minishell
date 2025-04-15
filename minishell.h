@@ -17,4 +17,6 @@
 //selfwritten
 # include "libft/libft.h"
 
+void	ft_signalhandle(void);
+
 #endif
