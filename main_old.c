@@ -20,7 +20,8 @@
 #define reset "\033[0m"
 #define PROMPT cyan"minishell> "reset
 
-char *find_binary(const char *cmd, char *envp[]) {
+char *find_binary(const char *cmd, char *envp[]) 
+{
 	if (strchr(cmd, '/')) {
 		if (access(cmd, X_OK) == 0) {
 			return strdup(cmd);
@@ -81,7 +82,7 @@ int execute_command(char *args, char *envp[]) {
 		// Child Process
 		if (execve(binary_path, args, envp) == -1) {
 			perror("execve");
-			exit(EXIT_FAILURE);
+		
 		}
 	} else {
 		// Parent Process

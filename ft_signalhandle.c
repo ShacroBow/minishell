@@ -2,7 +2,7 @@
 
 int g_signal = 0;
 
-void	ft_handler(int signal)
+static void	ft_handler(int signal)
 {
 	if (signal == SIGINT )
 	{

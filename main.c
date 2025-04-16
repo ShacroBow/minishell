@@ -4,20 +4,63 @@
 
 extern int g_signal;
 
+// char *find_binary(const char *cmd, char **envp)
+// {
+	
+// }
+char **ft_getenv(char **envp)
+{
+	char	**data;
+	int		i;
+	int		j;
+
+	i = 0;
+	while (envp[i])
+		i++;
+	data = malloc((i + 1) * sizeof(char *));
+	data[i] = NULL;
+	while (i)
+	{
+		i--;
+		j = 0;
+		data[i] = malloc((ft_strlen(envp[i]) + 2) * sizeof(char));
+		while (envp[i][++j] != '\0')
+			data[i][j] = envp[i][j];
+		data[i][0] = envp[i][0];
+		data[i][j] = '\0';
+	}
+	return (data);
+}
+
+
+void	ft_init(t_data *data, char **envp)
+{
+	int i;
+
+	i = 0;
+	data->envp = ft_getenv(envp);
+	while (envp[i])
+	{
+		printf("envp[%d]:%s\n", i, envp[i]);
+		printf("data[%d]:%s\n", i, data->envp[i]);
+		i++;
+	}
+}
+
 
 int main (int argc, char **argv, char **envp)
 {
-	char *prompt;
-	char *input;
+	t_data	data;
+	char	*prompt;
+	char	*input;
 
-	if (argc > 1)
+	if (argc > 1 && argv)
 	{
-		ft_putstr_fd("minishell does not accept arguments", 2);
+		// ft_putstr_fd("minishell does not accept arguments", 2);
 		return (EXIT_FAILURE);
 	}
-	ft_signalhandle();
-	(void)envp;
-	(void)argv;
+	// ft_signalhandle();
+	ft_init(&data, envp);
 	prompt = "Minishell>";
 	int i = 0;
 	char ptr[1000];
