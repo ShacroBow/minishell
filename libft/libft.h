@@ -6,13 +6,14 @@
 /*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 11:45:06 by kmashkoo          #+#    #+#             */
-/*   Updated: 2025/04/04 18:49:45 by kmashkoo         ###   ########.fr       */
+/*   Updated: 2025/04/18 17:50:57 by kmashkoo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LIBFT_H 
 # define LIBFT_H
 # include <stdlib.h>
+# include <stdio.h>
 
 typedef struct s_list
 {
@@ -72,5 +73,8 @@ long	ft_waste_time(unsigned int iterations);
 int		*ft_quicksort(int *arr, int len);
 /*passing ptr as null will give a malloc of new_size*/
 void	*ft_realloc(void *ptr, size_t old_size, size_t new_size, size_t type);
+/* accepts all atoi inputs and more 
+infinite '-' reading and pick your own base max 16*/
+int	ft_atoi_base(const char *str, int base);
 
 #endif
