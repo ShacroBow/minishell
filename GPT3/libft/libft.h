@@ -6,7 +6,7 @@
 /*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 11:45:06 by kmashkoo          #+#    #+#             */
-/*   Updated: 2025/04/20 16:20:47 by kmashkoo         ###   ########.fr       */
+/*   Updated: 2025/04/29 20:35:02 by kmashkoo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,5 +79,7 @@ infinite '-' reading and pick your own base max 16*/
 int	ft_atoi_base(const char *str, int base);
 /* same as strdup but only copy upto n chars. */
 char	*ft_strndup(const char *s, size_t n);
+ /* same as ft_atoi but using long */
+long	ft_atol(const char *nptr, int *len);
 
 #endif

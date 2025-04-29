@@ -2,48 +2,83 @@
 #include <limits.h>
 #include <ctype.h>
 
-static void     put_env(char ***envp, const char *kv);
+static void	put_env(char ***envp, const char *kv);
 
 /* ───────── helper: get environment variable value ───────── */
-static char *get_env_val(char **envp, const char *name) {
-	size_t len = strlen(name);
-	for (int i = 0; envp[i]; ++i) {
+static char	*get_env_val(char **envp, const char *name)
+{
+	size_t len;
+	int i;
+
+	i = 0;
+	len = ft_strlen(name);
+	while (envp[i])
+	{
 		if (!ft_strncmp(envp[i], name, len) && envp[i][len] == '=')
 			return (envp[i] + len + 1);
+		i++;
 	}
 	return NULL;
 }
 
 /* ───────── detect if a command is a builtin ───────── */
-int is_builtin(const char *cmd) {
-	return (!strcmp(cmd, "echo")   || !strcmp(cmd, "cd")    ||
-			!strcmp(cmd, "pwd")    || !strcmp(cmd, "export") ||
-			!strcmp(cmd, "unset")  || !strcmp(cmd, "env")    ||
-			!strcmp(cmd, "exit"));
+int	is_builtin(const char *cmd)
+{
+	return (!ft_strcmp(cmd, "echo") || !ft_strcmp(cmd, "cd") || \
+			!ft_strcmp(cmd, "pwd") || !ft_strcmp(cmd, "export") || \
+			!ft_strcmp(cmd, "unset") || !ft_strcmp(cmd, "env") || \
+			!ft_strcmp(cmd, "exit"));
 }
 
 /* ───────── builtin echo (with -n option) ───────── */
-static int builtin_echo(char **argv) {
-	int i = 1;
-	int no_newline = 0;
-	if (argv[1] && !strcmp(argv[1], "-n")) {
-		no_newline = 1;
+static int  is_n_flag(const char *s)
+{
+	int i;
+
+	if (!s || s[0] != '-')
+		return (0);
+	i = 1;
+	if (!s[i])
+		return (0);
+	while (s[i])
+	{
+		if (s[i] != 'n')
+			return (0);
 		i++;
 	}
-	for (; argv[i]; ++i) {
-		write(1, argv[i], strlen(argv[i]));
+	return (1);
+}
+
+int builtin_echo(char **argv)
+{
+	int i;
+	int print_nl;
+
+	i = 1;
+	print_nl = 1;
+	while (argv[i] && is_n_flag(argv[i]))
+	{
+		print_nl = 0;
+		i++;
+	}
+	while (argv[i])
+	{
+		ft_putstr_fd(argv[i], STDOUT_FILENO);
 		if (argv[i + 1])
 			write(1, " ", 1);
+		i++;
 	}
-	if (!no_newline)
+	if (print_nl)
 		write(1, "\n", 1);
 	return (0);
 }
 
 /* ───────── builtin pwd (print current directory) ───────── */
-static int builtin_pwd(void) {
+static int	builtin_pwd(void)
+{
 	char buf[PATH_MAX];
-	if (getcwd(buf, sizeof(buf))) {
+	if (getcwd(buf, sizeof(buf)))
+	{
 		write(1, buf, strlen(buf));
 		write(1, "\n", 1);
 		return (0);
@@ -53,105 +88,175 @@ static int builtin_pwd(void) {
 }
 
 /* ───────── builtin cd (change directory) ───────── */
-static int builtin_cd(char **argv, char ***envp) {
+static const char	*pick_path(char **av, char **env, int *echo_path)
+{
+	const char	*target;
+
+	*echo_path = 0;
+	if (!av[1])
+		return (get_env_val(env, "HOME"));
+	if (ft_strcmp(av[1], "-") == 0)
+	{
+		target = get_env_val(env, "OLDPWD");
+		if (!target)
+			return (ft_putstr_fd("minishell: cd: OLDPWD not set\n", 2), NULL);
+		*echo_path = 1;
+		return (target);
+	}
+	return (av[1]);
+}
+
+static int	update_pwd(char ***e, const char *old, const char *new_dir)
+{
+	char	*oldpwd;
+	char	*pwd;
+
+	oldpwd = ft_strjoin("OLDPWD=", old);
+	if (!oldpwd)
+		return (perror("minishell"), 1);
+	pwd = ft_strjoin("PWD=", new_dir);
+	if (!pwd)
+	{
+		free(oldpwd);
+		return (perror("minishell"), 1);
+	}
+	put_env(e, oldpwd);
+	put_env(e, pwd);
+	free(oldpwd);
+	free(pwd);
+	return (0);
+}
+
+int builtin_cd(char **argv, char ***envp)
+{
+	char		cwd_old[PATH_MAX];
+	char		cwd_new[PATH_MAX];
+	const char	*path;
+	int			echo_path;
+
 	if (argv[1] && argv[2])
-		return (write(2, "minishell: cd: too many arguments\n", 34), 1);
-	const char *path = argv[1] ? argv[1] : get_env_val(*envp, "HOME");
+		return (ft_putstr_fd("minishell: cd: too many arguments\n", 2), 1);
+	path = pick_path(argv, *envp, &echo_path);
 	if (!path)
-		return (write(2, "minishell: cd: HOME not set\n", 28), 1);
-	char cwd_old[PATH_MAX];
-	if (!getcwd(cwd_old, sizeof(cwd_old)))
+		return (ft_putstr_fd("minishell: cd: HOME not set\n", 2), 1);
+	if (!getcwd(cwd_old, PATH_MAX))
 		cwd_old[0] = '\0';
 	if (chdir(path) == -1)
 		return (perror("cd"), 1);
-	char cwd_new[PATH_MAX];
-	if (getcwd(cwd_new, sizeof(cwd_new))) {
-		char *oldpwd_str = ft_strjoin("OLDPWD=", cwd_old);
-		if (!oldpwd_str)
-			return (perror("minishell"), 1);
-		char *pwd_str = ft_strjoin("PWD=", cwd_new);
-		if (!pwd_str) {
-			free(oldpwd_str);
-			return (perror("minishell"), 1);
-		}
-		put_env(envp, oldpwd_str);
-		put_env(envp, pwd_str);
-		free(oldpwd_str);
-		free(pwd_str);
-	}
+	if (getcwd(cwd_new, PATH_MAX))
+		if (update_pwd(envp, cwd_old, cwd_new))
+			return (1);
+	if (echo_path)
+		printf("%s\n", cwd_new);
 	return (0);
 }
 
 /* ───────── builtin env (print environment) ───────── */
-static int builtin_env(char **envp) {
-	for (int i = 0; envp[i]; ++i) {
-		write(1, envp[i], strlen(envp[i]));
-		write(1, "\n", 1);
+static int	builtin_env(char **envp)
+{
+	int i;
+
+	i = 0;
+	while  (envp[i])
+	{
+		ft_putstr_fd(envp[i], 1);
+		ft_putstr_fd("\n", 1);
+		i++;
 	}
 	return (0);
 }
 
 /* ───────── helper: validate export key format ───────── */
-static int is_valid_key(const char *s) {
-	if (!(*s) || (!isalpha(*s) && *s != '_'))
+static int	is_valid_key(const char *s)
+{
+	int i;
+
+	i = 0;
+	if (!(*s) || (!ft_isalpha(*s) && *s != '_'))
 		return (0);
-	while (*s && *s != '=') {
-		if (!isalnum(*s) && *s != '_')
+	while (s[i] && s[i] != '=')
+	{
+		if (!ft_isalnum(s[i]) && s[i] != '_')
 			return (0);
-		++s;
+		i++;
 	}
 	return (1);
 }
 
 /* ───────── helper: add or replace an env variable ───────── */
-static void put_env(char ***envp, const char *kv) {
-	size_t keylen = 0;
-	while (kv[keylen] && kv[keylen] != '=')
-		++keylen;
-	for (int i = 0; (*envp)[i]; ++i) {
-		if (!strncmp((*envp)[i], kv, keylen) && (*envp)[i][keylen] == '=') {
-			if (kv[keylen] == '\0')
-				return;
+static char	*dup_keyval(const char *kv, size_t klen)
+{
+	char	*out;
+
+	if (kv[klen] == '\0')
+	{
+		out = malloc(klen + 2);
+		if (!out)
+			return (NULL);
+		ft_memcpy(out, kv, klen);
+		out[klen] = '=';
+		out[klen + 1] = '\0';
+		return (out);
+	}
+	return (ft_strdup(kv));
+}
+
+static int	append_env(char ***envp, char *newstr)
+{
+	char	**grow;
+	int		len;
+	int		i;
+
+	len = 0;
+	while ((*envp)[len])
+		len++;
+	grow = malloc(sizeof(char *) * (len + 2));
+	if (!grow)
+		return (1);
+	i = 0;
+	while (i < len)
+	{
+		grow[i] = (*envp)[i];
+		i++;
+	}
+	grow[len] = newstr;
+	grow[len + 1] = NULL;
+	free(*envp);
+	*envp = grow;
+	return (0);
+}
+
+void	put_env(char ***envp, const char *kv)
+{
+	size_t	klen;
+	int		i;
+	char	*newstr;
+
+	klen = 0;
+	while (kv[klen] && kv[klen] != '=')
+		klen++;
+	i = 0;
+	while ((*envp)[i])
+	{
+		if (!ft_strncmp((*envp)[i], kv, klen)
+			&& (*envp)[i][klen] == '=')
+		{
+			if (kv[klen] == '\0')
+				return ;
 			free((*envp)[i]);
 			(*envp)[i] = ft_strdup(kv);
-			return;
+			return ;
 		}
+		i++;
 	}
-	int count = 0;
-	while ((*envp)[count])
-		++count;
-	char **newenv = malloc((count + 2) * sizeof(char *));
-	if (!newenv) {
+	newstr = dup_keyval(kv, klen);
+	if (!newstr || append_env(envp, newstr))
 		perror("minishell");
-		return;
-	}
-	for (int j = 0; j < count; ++j)
-		newenv[j] = (*envp)[j];
-	char *new_str;
-	if (kv[keylen] == '\0') {
-		new_str = malloc(keylen + 2);
-		if (!new_str) {
-			perror("minishell");
-			return;
-		}
-		memcpy(new_str, kv, keylen);
-		new_str[keylen] = '=';
-		new_str[keylen+1] = '\0';
-	} else {
-		new_str = ft_strdup(kv);
-		if (!new_str) {
-			perror("minishell");
-			return;
-		}
-	}
-	newenv[count] = new_str;
-	newenv[count + 1] = NULL;
-	free(*envp);
-	*envp = newenv;
 }
 
 /* ───────── builtin export (add to env) ───────── */
-static int builtin_export(char **argv, char ***envp) {
+static int	builtin_export(char **argv, char ***envp)
+{
 	if (!argv[1])
 		return (builtin_env(*envp));
 	for (int i = 1; argv[i]; ++i) {
@@ -165,7 +270,8 @@ static int builtin_export(char **argv, char ***envp) {
 }
 
 /* ───────── builtin unset (remove from env) ───────── */
-static int builtin_unset(char **argv, char ***envp) {
+static int	builtin_unset(char **argv, char ***envp)
+{
 	for (int i = 1; argv[i]; ++i) {
 		size_t len = strlen(argv[i]);
 		for (int j = 0; (*envp)[j]; ++j) {
@@ -183,32 +289,57 @@ static int builtin_unset(char **argv, char ***envp) {
 }
 
 /* ───────── builtin exit (exit shell) ───────── */
-int builtin_exit(char **argv) {
-	if (argv[1] && argv[2]) {
-		write(2, "minishell: exit: too many arguments\n", 35);
+static int  parse_numeric(const char *str, long *num)
+{
+	const char	*ptr;
+	int			digits;
+
+	ptr = str;
+	while (ft_isspace((unsigned char)*ptr))
+		ptr++;
+	*num = ft_atol(ptr, &digits);
+	if (digits == 0)
 		return (1);
-	}
-	long code = 0;
-	if (argv[1]) {
-		char *end;
-		code = strtol(argv[1], &end, 10);
-		if (*end) {
-			write(2, "minishell: exit: numeric argument required\n", 44);
-			code = 255;
-			write(1, "exit\n", 5);
+	if (*ptr == '+' || *ptr == '-')
+		ptr++;
+	while (*ptr == '0')
+		ptr++;
+	ptr += digits;
+	while (ft_isspace((unsigned char)*ptr))
+		ptr++;
+	return (*ptr != '\0');
+}
+
+int builtin_exit(char **argv)
+{
+	int		argc;
+	long	code;
+
+	argc = 0;
+	while (argv[argc])
+		argc++;
+	if (argc > 2)
+		return (ft_putstr_fd("minishell: exit: too many arguments\n", 2), 1);
+	if (argc == 2)
+	{
+		if (parse_numeric(argv[1], &code))
+		{
+			ft_putstr_fd("minishell: exit: numeric argument required\n", 2);
+			ft_putstr_fd("exit\n", 1);
 			exit(255);
 		}
-		code &= 0xff;
-	} else {
-		code = g_exit_status & 0xff;
+		code &= 0xFF;
 	}
-	write(1, "exit\n", 5);
+	else
+		code = g_exit_status & 0xFF;
+	ft_putstr_fd("exit\n", 1);
 	exit((int)code);
 	return (0);
 }
 
 /* ───────── dispatch to the correct builtin ───────── */
-char **execute_builtin(t_command *cmd, char **envp) {
+char	**execute_builtin(t_command *cmd, char **envp)
+{
 	if (!ft_strcmp(cmd->argv[0], "echo"))
 		g_exit_status = builtin_echo(cmd->argv);
 	else if (!ft_strcmp(cmd->argv[0], "cd"))

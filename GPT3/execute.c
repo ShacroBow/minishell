@@ -52,27 +52,33 @@ char *find_executable(const char *cmd, char **envp) {
 }
 
 /* ───────── execute a pipeline of commands ───────── */
-static void run_pipeline(t_command *cmds, char **envp) {
+static void run_pipeline(t_command *cmds, char **envp)
+{
 	/* count commands in the pipeline */
 	int n = 0;
 	for (t_command *tmp = cmds; tmp; tmp = tmp->next)
 		++n;
-	int pipes[n - 1][2];
-	for (int i = 0; i < n - 1; ++i) {
-		if (pipe(pipes[i]) < 0) {
+	int pipes[n][2];
+	for (int i = 0; i < n - 1; ++i)
+	{
+		if (pipe(pipes[i]) < 0)
+		{
 			perror("minishell");
 			exit(EXIT_FAILURE);
 		}
 	}
 	pid_t pids[n];
 	t_command *cur = cmds;
-	for (int i = 0; i < n; ++i, cur = cur->next) {
+	for (int i = 0; i < n; ++i, cur = cur->next)
+	{
 		pids[i] = fork();
-		if (pids[i] < 0) {
+		if (pids[i] < 0)
+		{
 			perror("minishell");
 			exit(EXIT_FAILURE);
 		}
-		if (pids[i] == 0) {  /* child process */
+		if (pids[i] == 0)
+		{  /* child process */
 			restore_default_signals();
 			if (i > 0)
 				dup2(pipes[i - 1][0], STDIN_FILENO);
