@@ -257,33 +257,59 @@ void	put_env(char ***envp, const char *kv)
 /* ───────── builtin export (add to env) ───────── */
 static int	builtin_export(char **argv, char ***envp)
 {
+	int i;
+
+	i = 1;
 	if (!argv[1])
 		return (builtin_env(*envp));
-	for (int i = 1; argv[i]; ++i) {
-		if (!is_valid_key(argv[i])) {
-			write(2, "minishell: export: not a valid identifier\n", 42);
+	while (argv[i])
+	{
+		if (!is_valid_key(argv[i]))
+		{
+			ft_putstr_fd("minishell: export: not a valid identifier\n", 2);
 			return (1);
 		}
 		put_env(envp, argv[i]);
+		i++;
 	}
 	return (0);
 }
 
 /* ───────── builtin unset (remove from env) ───────── */
+static void remove_at(char ***envp, int idx)
+{
+	int	k;
+
+	free((*envp)[idx]);
+	k = idx;
+	while ((*envp)[k])
+	{
+		(*envp)[k] = (*envp)[k + 1];
+		k++;
+	}
+}
 static int	builtin_unset(char **argv, char ***envp)
 {
-	for (int i = 1; argv[i]; ++i) {
-		size_t len = strlen(argv[i]);
-		for (int j = 0; (*envp)[j]; ++j) {
-			if (!strncmp((*envp)[j], argv[i], len) && (*envp)[j][len] == '=') {
-				free((*envp)[j]);
-				while ((*envp)[j]) {
-					(*envp)[j] = (*envp)[j + 1];
-					++j;
-				}
+	int		i;
+	int		j;
+	size_t	len;
+
+	i = 1;
+	while (argv[i])
+	{
+		len = ft_strlen(argv[i]);
+		j = 0;
+		while ((*envp)[j])
+		{
+			if (!ft_strncmp((*envp)[j], argv[i], len) && \
+				(*envp)[j][len] == '=')
+			{
+				remove_at(envp, j);
 				break;
 			}
+			j++;
 		}
+		i++;
 	}
 	return (0);
 }
