@@ -1,5 +1,7 @@
 NAME = minishell
-SRC =	main.c builtins.c execute.c parse.c ft_signalhandle.c 
+SRC =	main.c $(SRC_BUILTIN) execute.c parse.c ft_signalhandle.c 
+SRC_BUILTIN =	builtins/ft_builtins.c builtins/ft_exit.c builtins/ft_unset.c \
+				builtins/ft_export.c builtins/ft_cd.c builtins/ft_echo.c
 OBJ_DIR = ./dir/
 OBJ = $(SRC:%.c=$(OBJ_DIR)%.o)
 LIBFT_PATH = ./libft/
@@ -17,6 +19,7 @@ $(NAME): $(OBJ_DIR) $(OBJ) $(LIBFT_PATH)$(LIBFT)
 	$(CC) $(OBJ) $(CFLAGS) -o $(NAME) $(LIBFLAGS)
 
 $(OBJ_DIR)%.o : %.c
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR):
@@ -26,7 +29,7 @@ $(LIBFT_PATH)$(LIBFT):
 	make -C $(LIBFT_PATH) all -j8
 
 clean:
-	rm -f $(OBJ)
+	rm -rf $(OBJ)
 	make -C $(LIBFT_PATH) clean
 
 fclean: clean

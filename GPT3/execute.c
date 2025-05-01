@@ -104,7 +104,7 @@ static void run_pipeline(t_command *cmds, char **envp)
 			}
 			if (cur->subshell)
 				exit(execute_segments(cur->subshell_segments, &envp));
-			if (cur->argv && is_builtin(cur->argv[0])) {
+			if (cur->argv && ft_isbuiltin(cur->argv[0])) {
 				execute_builtin(cur, envp);
 				exit(g_exit_status);
 			}
@@ -150,11 +150,11 @@ int execute_segments(t_segment *seg, char ***envp) {
 	while (seg) {
 		if (!skip) {
 			t_command *cmd = seg->pipeline;
-			if (cmd && !cmd->next && cmd->argv && is_builtin(cmd->argv[0]) &&
+			if (cmd && !cmd->next && cmd->argv && ft_isbuiltin(cmd->argv[0]) &&
 				!cmd->subshell) {
 				/* single builtin not in pipeline: run in parent */
 				if (!ft_strcmp(cmd->argv[0], "exit")) {
-					int code = builtin_exit(cmd->argv);
+					int code = ft_exit(cmd->argv);
 					if (code != 1)
 						exit(code);
 					g_exit_status = code;

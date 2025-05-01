@@ -15,6 +15,8 @@
 #include <readline/history.h>
 #include <dirent.h>
 #include "libft/libft.h"
+#include <limits.h>
+#include <ctype.h>
 
 extern volatile sig_atomic_t	g_exit_status;
 
@@ -60,16 +62,27 @@ typedef struct s_segment
 	char				***envp;
 }	t_segment;
 
-/* Parsing and execution function prototypes */
+/* lexer functions */
+
+
+/* Parsing and execution */
 t_segment	*parse_input(const char *input, char ***envp);
 void		free_segments(t_segment *seg);
 void		free_commands(t_command *cmd);
 int			execute_segments(t_segment *seg_list, char ***envp);
 
 /* Built-in commands */
-int			is_builtin(const char *cmd);
+int			ft_isbuiltin(const char *cmd);
+int			ft_exit(char **argv);
+int			ft_unset(char **argv, char ***envp);
+int			ft_export(char **argv, char ***envp);
+void		ft_put_env(char ***envp, const char *kv);
+int			ft_cd(char **argv, char ***envp);
+int			ft_echo(char **argv);
+
+
+int			ft_env(char **envp);
 char		**execute_builtin(t_command *cmd, char **envp);
-int			builtin_exit(char **argv);
 
 /* Utility functions */
 char		*find_executable(const char *cmd, char **envp);

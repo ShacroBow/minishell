@@ -525,31 +525,51 @@ static t_segment *parse_segments(t_token *tok, int *idx, int n, int in_sub) {
 }
 
 /* ───────── top-level parse function ───────── */
-t_segment *parse_input(const char *input, char ***envp) {
+t_segment *parse_input(const char *input, char ***envp)
+{
+	int			quotes_s;
+	int			quotes_d;
+	int			tcount;
+	int			idx;
+	int			i;
+	t_token		*tok;
+	t_segment	*ast;
+
 	env_list = *envp;  /* set current env for expansions */
-	int quotes_s = 0, quotes_d = 0;
-	for (int i = 0; input[i]; ++i) {
+	
+	quotes_s = 0;
+	quotes_d = 0;
+	i = 0;
+	tcount = 0;
+	idx = 0;
+	// lexer quote
+	while (input[i])
+	{
 		if (input[i] == '\'')
 			quotes_s ^= 1;
 		else if (input[i] == '\"')
 			quotes_d ^= 1;
+		i++;
 	}
-	if (quotes_s || quotes_d) {
+	if (quotes_s || quotes_d)
+	{
 		write(2, "minishell: syntax error unclosed quote\n", 38);
 		g_exit_status = 258;
 		return NULL;
 	}
-	int tcount = 0, idx = 0;
-	t_token *tok = tokenize(input, &tcount);
+	// lexer quote
+	tok = tokenize(input, &tcount);
 	if (!tok)
 		return NULL;
-	t_segment *ast = parse_segments(tok, &idx, tcount, 0);
-	if (idx < tcount && ast) {
+	ast = parse_segments(tok, &idx, tcount, 0);
+	ast->envp = envp;
+	if (idx < tcount && ast)
+	{
 		write(2, "minishell: syntax error near unexpected token\n", 47);
 		g_exit_status = 258;
 		free_segments(ast);
 		ast = NULL;
 	}
 	free_tokens(tok, tcount);
-	return ast;
+	return (ast);
 }
