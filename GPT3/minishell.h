@@ -65,10 +65,12 @@ typedef struct s_segment
 /* lexer functions */
 
 
-/* Parsing and execution */
+/* Parsing */
 t_segment	*parse_input(const char *input, char ***envp);
 void		free_segments(t_segment *seg);
 void		free_commands(t_command *cmd);
+
+/* execution */
 int			execute_segments(t_segment *seg_list, char ***envp);
 
 /* Built-in commands */
@@ -87,6 +89,7 @@ char		**execute_builtin(t_command *cmd, char **envp);
 /* Utility functions */
 char		*find_executable(const char *cmd, char **envp);
 char		**ft_dupenvp(char **envp);
+void		ft_envpfree(char **envp);
 
 /* Signal handling */
 void		setup_signals(void);

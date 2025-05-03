@@ -33,9 +33,18 @@ clean:
 	make -C $(LIBFT_PATH) clean
 
 fclean: clean
-	rm -rf $(NAME) a.out $(OBJ_DIR)
+	rm -rf $(NAME) a.out $(OBJ_DIR) files.supp
 	make -C $(LIBFT_PATH) fclean
 
 re: fclean all
 
-.PHONY: all clean fclean re compile #bonus
+supp:
+	@printf '%s\n' '{' \
+	    '    ignore_libreadline_errors' \
+	    '    Memcheck:Leak' \
+	    '    ...' \
+	    '    obj:*/libreadline.so.*' \
+	    '}' > files.supp
+	@echo "jobs done"
+	
+.PHONY: all clean fclean re compile supp #bonus

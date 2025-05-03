@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+extern volatile sig_atomic_t    g_exit_status;
+
 static char **env_list;  /* current environment for expansions */
 
 /* ───────── forward declarations ───────── */
@@ -47,7 +49,8 @@ void free_commands(t_command *cmd) {
 	}
 }
 
-void free_segments(t_segment *seg) {
+void free_segments(t_segment *seg)
+{
 	while (seg) {
 		t_segment *nx = seg->next;
 		if (seg->pipeline)
@@ -553,7 +556,7 @@ t_segment *parse_input(const char *input, char ***envp)
 	}
 	if (quotes_s || quotes_d)
 	{
-		write(2, "minishell: syntax error unclosed quote\n", 38);
+		ft_putstr_fd("minishell: syntax error unclosed quote\n", STDERR_FILENO);
 		g_exit_status = 258;
 		return NULL;
 	}
@@ -562,10 +565,9 @@ t_segment *parse_input(const char *input, char ***envp)
 	if (!tok)
 		return NULL;
 	ast = parse_segments(tok, &idx, tcount, 0);
-	ast->envp = envp;
 	if (idx < tcount && ast)
 	{
-		write(2, "minishell: syntax error near unexpected token\n", 47);
+		ft_putstr_fd("minishell: syntax error near unexpected token\n", STDERR_FILENO);
 		g_exit_status = 258;
 		free_segments(ast);
 		ast = NULL;

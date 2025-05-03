@@ -3,7 +3,7 @@
 extern volatile sig_atomic_t    g_exit_status;
 
 /* Free a duplicated environment */
-static void ft_envpfree(char **envp)
+void ft_envpfree(char **envp)
 {
 	int i;
 
@@ -47,6 +47,9 @@ int main(int argc, char **argv, char **envp)
 {
 	char *line;
 	(void)argv;
+	g_exit_status = 0;
+	t_segment *segs;
+	
 	if (argc != 1) {
 		fprintf(stderr, "minishell: no arguments supported\n");
 		return (EXIT_FAILURE);
@@ -68,9 +71,11 @@ int main(int argc, char **argv, char **envp)
 		}
 		if (*line)
 			add_history(line);
-		t_segment *segs = parse_input(line, &env);
-		if (segs) {
-			execute_segments(segs, &env);
+		segs = parse_input(line, &env);
+		if (segs)
+		{
+			if (execute_segments(segs, &env) == -1)
+				break ;
 			free_segments(segs);
 		}
 		rl_on_new_line();

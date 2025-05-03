@@ -145,25 +145,35 @@ static void run_pipeline(t_command *cmds, char **envp)
 }
 
 /* ───────── execute chained segments (&&, ||) ───────── */
-int execute_segments(t_segment *seg, char ***envp) {
-	int skip = 0;
-	while (seg) {
-		if (!skip) {
-			t_command *cmd = seg->pipeline;
+int	execute_segments(t_segment *seg, char ***envp)
+{
+	int			skip;
+	t_command	*cmd;
+
+	skip = 0;
+	while (seg)
+	{
+		if (!skip)
+		{
+			cmd = seg->pipeline;
 			if (cmd && !cmd->next && cmd->argv && ft_isbuiltin(cmd->argv[0]) &&
-				!cmd->subshell) {
+				!cmd->subshell)
+			{
 				/* single builtin not in pipeline: run in parent */
-				if (!ft_strcmp(cmd->argv[0], "exit")) {
-					int code = ft_exit(cmd->argv);
-					if (code != 1)
-						exit(code);
-					g_exit_status = code;
-				} else {
-					*envp = execute_builtin(cmd, *envp);
+				if (!ft_strcmp(cmd->argv[0], "exit"))
+				{
+					skip = ft_exit(cmd->argv);
+					if (skip == -1)
+						return (ft_envpfree(*envp), free_segments(seg), -1);
+					g_exit_status = skip;
+					free_segments(seg);
+					return (-1);
 				}
-			} else {
-				run_pipeline(seg->pipeline, *envp);
+				else
+					*envp = execute_builtin(cmd, *envp);
 			}
+			else
+				run_pipeline(seg->pipeline, *envp);
 		}
 		if (seg->op == TOK_AND)
 			skip = (g_exit_status != 0);
@@ -173,5 +183,5 @@ int execute_segments(t_segment *seg, char ***envp) {
 			skip = 0;
 		seg = seg->next;
 	}
-	return g_exit_status;
+	return (g_exit_status);
 }
