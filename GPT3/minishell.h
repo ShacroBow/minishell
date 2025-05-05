@@ -18,6 +18,7 @@
 #include <limits.h>
 #include <ctype.h>
 
+
 extern volatile sig_atomic_t	g_exit_status;
 
 /* token / AST structure definitions */
@@ -71,7 +72,11 @@ void		free_segments(t_segment *seg);
 void		free_commands(t_command *cmd);
 
 /* execution */
-int			execute_segments(t_segment *seg_list, char ***envp);
+char		*ft_find_binary(const char *cmd, char **envp);
+void		ft_run_pipeline(t_command *cmds, char **envp);
+
+
+int			ft_execute(t_segment *seg_list);
 
 /* Built-in commands */
 int			ft_isbuiltin(const char *cmd);

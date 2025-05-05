@@ -74,7 +74,7 @@ int main(int argc, char **argv, char **envp)
 		segs = parse_input(line, &env);
 		if (segs)
 		{
-			if (execute_segments(segs, &env) == -1)
+			if (ft_execute(segs) == -1)
 				break ;
 			free_segments(segs);
 		}

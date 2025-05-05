@@ -573,5 +573,7 @@ t_segment *parse_input(const char *input, char ***envp)
 		ast = NULL;
 	}
 	free_tokens(tok, tcount);
+	if (ast)
+		ast->envp = envp;
 	return (ast);
 }

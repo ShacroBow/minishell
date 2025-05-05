@@ -1,7 +1,8 @@
 NAME = minishell
-SRC =	main.c $(SRC_BUILTIN) execute.c parse.c ft_signalhandle.c 
+SRC =	main.c $(SRC_BUILTIN) $(SRC_EXECUTE) parse.c ft_signalhandle.c 
 SRC_BUILTIN =	builtins/ft_builtins.c builtins/ft_exit.c builtins/ft_unset.c \
 				builtins/ft_export.c builtins/ft_cd.c builtins/ft_echo.c
+SRC_EXECUTE = execute/ft_execute.c execute/ft_find_binary.c execute/ft_run_pipeline.c
 OBJ_DIR = ./dir/
 OBJ = $(SRC:%.c=$(OBJ_DIR)%.o)
 LIBFT_PATH = ./libft/
