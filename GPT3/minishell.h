@@ -63,6 +63,8 @@ typedef struct s_segment
 	char				***envp;
 }	t_segment;
 
+typedef int t_pipe_fd[2];
+
 /* lexer functions */
 
 
@@ -89,7 +91,7 @@ int			ft_echo(char **argv);
 
 
 int			ft_env(char **envp);
-char		**execute_builtin(t_command *cmd, char **envp);
+char		**ft_execute_builtin(t_command *cmd, char **envp);
 
 /* Utility functions */
 char		*find_executable(const char *cmd, char **envp);

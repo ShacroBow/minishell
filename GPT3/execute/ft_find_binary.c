@@ -1,9 +1,9 @@
 #include "../minishell.h"
 
-static char *ft_get_env_val(char **envp, const char *key)
+static char	*ft_get_env_val(char **envp, const char *key)
 {
-	size_t len;
-	size_t i;
+	size_t	len;
+	size_t	i;
 
 	i = 0;
 	len = ft_strlen(key);
@@ -13,13 +13,14 @@ static char *ft_get_env_val(char **envp, const char *key)
 			return (envp[i] + len + 1);
 		i++;
 	}
-	return NULL;
+	return (NULL);
 }
 
-static void ft_free_doubleptr(char **arr)
+static void	ft_free_doubleptr(char **arr)
 {
-	int i = 0;
+	int	i;
 
+	i = 0;
 	if (arr == NULL)
 		return ;
 	while (arr[i])

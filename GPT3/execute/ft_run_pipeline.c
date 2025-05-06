@@ -1,93 +1,168 @@
 #include "../minishell.h"
 
-void ft_run_pipeline(t_command *cmds, char **envp)
+static int	count_cmds(t_command *c)
 {
-	/* count commands in the pipeline */
-	int n = 0;
-	for (t_command *tmp = cmds; tmp; tmp = tmp->next)
-		++n;
-	int pipes[n][2];
-	for (int i = 0; i < n - 1; ++i)
+	int	n;
+
+	n = 0;
+	while (c)
 	{
-		if (pipe(pipes[i]) < 0)
-		{
-			perror("minishell");
-			exit(EXIT_FAILURE);
-		}
+		n++;
+		c = c->next;
 	}
-	pid_t pids[n];
-	t_command *cur = cmds;
-	for (int i = 0; i < n; ++i, cur = cur->next)
+	return (n);
+}
+
+/* ---------- allocate + open (n‑1) pipes --------------------------------- */
+static t_pipe_fd	*make_pipes(int n)
+{
+	int			i;
+	t_pipe_fd	*tab;
+
+	if (n <= 1)
+		return (NULL);
+	tab = malloc(sizeof(t_pipe_fd) * (n - 1));
+	if (!tab)
+		exit(EXIT_FAILURE);
+	i = 0;
+	while (i < n - 1)
 	{
-		pids[i] = fork();
-		if (pids[i] < 0)
-		{
-			perror("minishell");
+		if (pipe(tab[i]) == -1)
 			exit(EXIT_FAILURE);
-		}
-		if (pids[i] == 0)
-		{  /* child process */
-			restore_default_signals();
-			if (i > 0)
-				dup2(pipes[i - 1][0], STDIN_FILENO);
-			if (cur->infile) {
-				int fd = open(cur->infile, O_RDONLY);
-				if (fd < 0) { perror(cur->infile); exit(EXIT_FAILURE); }
-				dup2(fd, STDIN_FILENO);
-				close(fd);
-			}
-			if (i < n - 1)
-				dup2(pipes[i][1], STDOUT_FILENO);
-			if (cur->outfile) {
-				int fd = open(cur->outfile, O_WRONLY | O_CREAT |
-							(cur->append ? O_APPEND : O_TRUNC), 0644);
-				if (fd < 0) { perror(cur->outfile); exit(EXIT_FAILURE); }
-				dup2(fd, STDOUT_FILENO);
-				close(fd);
-			}
-			/* close all pipe fds in the child */
-			for (int j = 0; j < n - 1; ++j) {
-				close(pipes[j][0]);
-				close(pipes[j][1]);
-			}
-			if (cur->subshell)
-				exit(ft_execute(cur->subshell_segments));
-			if (cur->argv && ft_isbuiltin(cur->argv[0])) {
-				execute_builtin(cur, envp);
-				exit(g_exit_status);
-			}
-			if (!cur->argv || !cur->argv[0])
-				exit(0);
-			char *path = ft_find_binary(cur->argv[0], envp);
-			if (!path) {
-				write(STDERR_FILENO, "minishell: command not found\n", 29);
-				exit(127);
-			}
-			execve(path, cur->argv, envp);
-			perror(cur->argv[0]);
-			free(path);
-			exit(126);
-		}
-		/* parent process closes used pipe ends */
-		if (i > 0)
-			close(pipes[i - 1][0]);
+		i++;
+	}
+	return (tab);
+}
+
+/* ---------- simple file redirection ------------------------------------- */
+static void	child_redir(t_command *c)
+{
+	int	fd;
+
+	if (c->infile)
+	{
+		fd = open(c->infile, O_RDONLY);
+		if (fd < 0)
+			exit(EXIT_FAILURE);
+		dup2(fd, STDIN_FILENO);
+		close(fd);
+	}
+	if (c->outfile)
+	{
+		if (c->append)
+			fd = open(c->outfile, (O_CREAT | O_WRONLY | O_APPEND), 0644);
+		else
+			fd = open(c->outfile, (O_CREAT | O_WRONLY | O_TRUNC), 0644);
+		if (fd < 0)
+			exit(EXIT_FAILURE);
+		dup2(fd, STDOUT_FILENO);
+		close(fd);
+	}
+}
+
+/* ---------- duplicate pipes + close unused ------------------------------ */
+static void	child_dup_pipes(int idx, int n, t_pipe_fd *p)
+{
+	int	k;
+
+	if (idx && dup2(p[idx - 1][0], STDIN_FILENO) == -1)
+		exit(EXIT_FAILURE);
+	if (idx < n - 1 && dup2(p[idx][1], STDOUT_FILENO) == -1)
+		exit(EXIT_FAILURE);
+	k = 0;
+	while (k < n - 1)
+	{
+		close(p[k][0]);
+		close(p[k][1]);
+		k++;
+	}
+}
+
+/* ---------- code executed by each child --------------------------------- */
+static void	child_exec(t_command *c, int idx, int n, t_pipe_fd *p, char **env)
+{
+	char	*path;
+
+	restore_default_signals();
+	child_dup_pipes(idx, n, p);
+	child_redir(c);
+	if (c->subshell)
+		exit(ft_execute(c->subshell_segments));
+	if (c->argv && ft_isbuiltin(c->argv[0]))
+	{
+		ft_execute_builtin(c, env);
+		exit(g_exit_status);
+	}
+	if (!c->argv || !c->argv[0])
+		exit(0);
+	path = ft_find_binary(c->argv[0], env);
+	if (!path)
+		(write(2, "minishell: command not found\n", 29), exit(127));
+	execve(path, c->argv, env);
+	perror(c->argv[0]);
+	exit(126);
+}
+
+/* ---------- fork loop (parent side) ------------------------------------- */
+static void	spawn_children(t_command *cmds, int n,
+						t_pipe_fd *p, pid_t *pid, char **env)
+{
+	int			i;
+	t_command	*cur;
+
+	cur = cmds;
+	i = 0;
+	while (i < n)
+	{
+		pid[i] = fork();
+		if (pid[i] == -1)
+			exit(EXIT_FAILURE);
+		if (pid[i] == 0)
+			child_exec(cur, i, n, p, env);
+		if (i)
+			close(p[i - 1][0]);
 		if (i < n - 1)
-			close(pipes[i][1]);
+			close(p[i][1]);
+		cur = cur->next;
+		i++;
 	}
-	/* parent ignores Ctrl-C and waits for children */
+}
+
+/* ---------- wait for children, set global status ------------------------ */
+static void	parent_wait(pid_t *pid, int n)
+{
+	int	i;
+	int	st;
+
 	signal(SIGINT, SIG_IGN);
-	int status = 0;
-	for (int i = 0; i < n; ++i)
-		waitpid(pids[i], &status, 0);
-	setup_signals();
-	if (WIFEXITED(status))
-		g_exit_status = WEXITSTATUS(status);
-	else if (WIFSIGNALED(status)) {
-		int sig = WTERMSIG(status);
-		if (sig == SIGQUIT)
-			write(STDERR_FILENO, "Quit: 3\n", 8);
-		else if (sig == SIGINT)
-			write(STDOUT_FILENO, "\n", 1);
-		g_exit_status = 128 + sig;
+	st = 0;
+	i = 0;
+	while (i < n)
+	{
+		waitpid(pid[i], &st, 0);
+		i++;
 	}
+	setup_signals();
+	if (WIFEXITED(st))
+		g_exit_status = WEXITSTATUS(st);
+	else if (WIFSIGNALED(st))
+		g_exit_status = 128 + WTERMSIG(st);
+}
+
+/* ---------- public entry ------------------------------------------------- */
+void	ft_run_pipeline(t_command *cmds, char **envp)
+{
+	int			n;
+	t_pipe_fd	*pipes;
+	pid_t		*pids;
+
+	n = count_cmds(cmds);
+	pipes = make_pipes(n);
+	pids = malloc(sizeof(pid_t) * n);
+	if (!pids)
+		exit(EXIT_FAILURE);
+	spawn_children(cmds, n, pipes, pids, envp);
+	parent_wait(pids, n);
+	free(pipes);
+	free(pids);
 }

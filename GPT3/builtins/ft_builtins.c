@@ -36,7 +36,7 @@ int	ft_env(char **envp)
 	return (0);
 }
 
-char	**execute_builtin(t_command *cmd, char **envp)
+char	**ft_execute_builtin(t_command *cmd, char **envp)
 {
 	if (!ft_strcmp(cmd->argv[0], "echo"))
 		g_exit_status = ft_echo(cmd->argv);
