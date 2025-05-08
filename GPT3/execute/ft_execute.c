@@ -17,9 +17,6 @@ static int	ft_runbuiltin(t_command *cmd, char ***envp)
 	return (0);
 }
 
-/* -------------------------------------------------------------------------- */
-/*  update skip flag according to previous status and segment connector       */
-/* -------------------------------------------------------------------------- */
 static void	ft_handle_skip(t_segment *seg, int *skip)
 {
 	if (seg->op == TOK_AND)
@@ -30,9 +27,6 @@ static void	ft_handle_skip(t_segment *seg, int *skip)
 		*skip = 0;
 }
 
-/* -------------------------------------------------------------------------- */
-/*  main executor                                                             */
-/* -------------------------------------------------------------------------- */
 int	ft_execute(t_segment *seg)
 {
 	int			skip;
