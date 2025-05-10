@@ -33,14 +33,14 @@ int	ft_exit(char **argv)
 	while (argv[argc])
 		argc++;
 	if (argc > 2)
-		return (ft_putstr_fd("minishell: exit: too many arguments\n", 2), 1);
+		return (ft_putstr_fd("minishell: exit: too many arguments\n", 2), 258);
 	if (argc == 2)
 	{
 		if (ft_parse_numeric(argv[1], &code))
 		{
 			ft_putstr_fd("minishell: exit: numeric argument required\n", 2);
 			ft_putstr_fd("exit\n", 1);
-			return (255);
+			return (258);
 		}
 		code &= 0xFF;
 	}

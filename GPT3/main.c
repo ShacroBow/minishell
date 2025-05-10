@@ -1,15 +1,15 @@
 #include "minishell.h"
 
-extern volatile sig_atomic_t    g_exit_status;
+extern volatile sig_atomic_t	g_exit_status;
 
 /* Free a duplicated environment */
-void ft_envpfree(char **envp)
+void	ft_envpfree(char **envp)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	if (!envp)
-		return;
+		return ;
 	while (envp[i])
 	{
 		free(envp[i]);
@@ -43,23 +43,11 @@ char	**ft_dupenvp(char **envp)
 	return (copy);
 }
 
-int main(int argc, char **argv, char **envp)
+static void	ft_mainloop(char **env)
 {
-	char *line;
-	(void)argv;
-	g_exit_status = 0;
-	t_segment *segs;
-	
-	if (argc != 1) {
-		fprintf(stderr, "minishell: no arguments supported\n");
-		return (EXIT_FAILURE);
-	}
-	char **env = ft_dupenvp(envp);
-	if (!env) {
-		perror("minishell");
-		exit(EXIT_FAILURE);
-	}
-	setup_signals();
+	char		*line;
+	t_segment	*segs;
+
 	while (1)
 	{
 		line = readline("minishell$ ");
@@ -67,7 +55,7 @@ int main(int argc, char **argv, char **envp)
 		{
 			write(1, "exit\n", 5);
 			free(line);
-			break;
+			break ;
 		}
 		if (*line)
 			add_history(line);
@@ -80,7 +68,30 @@ int main(int argc, char **argv, char **envp)
 		}
 		rl_on_new_line();
 		free(line);
+		g_exit_status = g_exit_status & 0xFF;
 	}
+}
+
+int	main(int argc, char **argv, char **envp)
+{
+	char		**env;
+
+	(void)argv;
+	g_exit_status = 0;
+	if (argc != 1)
+	{
+		ft_putstr_fd("minishell: no arguments supported\n", STDERR_FILENO);
+		return (EXIT_FAILURE);
+	}
+	env = ft_dupenvp(envp);
+	if (!env)
+	{
+		ft_putstr_fd("minishell: env memory alloc failed\n", STDERR_FILENO);
+		exit(EXIT_FAILURE);
+	}
+	setup_signals();
+	ft_mainloop(env);
+	g_exit_status = g_exit_status & 0xFF;
 	rl_clear_history();
 	ft_envpfree(env);
 	signals_print_handler(1);

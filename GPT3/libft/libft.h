@@ -6,7 +6,7 @@
 /*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 11:45:06 by kmashkoo          #+#    #+#             */
-/*   Updated: 2025/05/01 15:34:52 by kmashkoo         ###   ########.fr       */
+/*   Updated: 2025/05/10 21:49:01 by kmashkoo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void	*ft_realloc(void *ptr, size_t old_size, size_t new_size, size_t type);
 int		ft_strcmp(const char *s1, const char *s2);
 /* accepts all atoi inputs and more 
 infinite '-' reading and pick your own base max 16*/
-int	ft_atoi_base(const char *str, int base);
+int		ft_atoi_base(const char *str, int base);
 /* same as strdup but only copy upto n chars. */
 char	*ft_strndup(const char *s, size_t n);
 /* same as atoi_base for special behaviour and atoi for normal behaviour
