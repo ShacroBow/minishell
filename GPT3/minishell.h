@@ -33,7 +33,8 @@ typedef enum e_tokentype
 	TOK_APPEND,
 	TOK_HEREDOC,
 	TOK_LPAREN,
-	TOK_RPAREN
+	TOK_RPAREN,
+	TOK_END
 }	t_tokentype;
 
 typedef struct s_token
@@ -65,11 +66,29 @@ typedef struct s_segment
 }	t_segment;
 
 /* lexer functions */
+t_token	*tokenize(const char *input, int *out_count);
+void	process_op(const char *s, int *p, t_token *arr, int *idx);
+void	process_word(const char *s, int *p, t_token *arr, int *idx);
+void	add_tok(t_token *arr, int *idx, t_tokentype type, char *val);
+int		count_tokens(const char *s);
+char	*dup_range(const char *s, int st, int ed);
+int		is_op_char(char c);
+void	free_tokens(t_token *tok, int count);
+int		match_pattern(const char *pat, const char *text);
+char	**expand_wildcard(const char *pattern);
+void	buf_append(char **buf, int *cap, int *len, char c);
 
 /* Parsing */
 t_segment	*parse_input(const char *input, char ***envp);
-void		free_segments(t_segment *seg);
 void		free_commands(t_command *cmd);
+void		free_segments(t_segment *seg);
+t_segment	*parse_segments(t_token *tok, int *idx, int n, int in_sub);
+int			push_pipeline(t_segment **h, t_segment **t, t_command *pipe, t_tokentype op);
+int			handle_redir(t_command *cur, t_token *tok, int *i, int n);
+int			handle_word(t_command *cur, t_token *tok, int *i);
+int			handle_subshell(t_command *cur, t_token *tok, int *i, int n);
+void		add_arg(t_command *c, const char *val);
+t_command	*new_command(void);
 
 /* execution */
 char		*ft_find_binary(const char *cmd, char **envp);
