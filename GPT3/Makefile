@@ -1,5 +1,5 @@
 NAME = minishell
-SRC =	main.c  $(SRC_BUILTIN) $(SRC_EXECUTE) $(SRC_LEXER) $(SRC_PARSER) ft_signalhandle.c 
+SRC =	main.c  $(SRC_BUILTIN) $(SRC_EXECUTE) parse.c $(SRC_SIGNAL)
 SRC_BUILTIN =	builtins/ft_builtins.c builtins/ft_exit.c builtins/ft_unset.c \
 				builtins/ft_export.c builtins/ft_cd.c builtins/ft_echo.c
 SRC_EXECUTE =	execute/ft_execute.c execute/ft_find_binary.c execute/ft_run_pipeline.c \
@@ -8,6 +8,7 @@ SRC_LEXER   =	lexer/buf_utils.c lexer/expand_wildcard.c lexer/free_tokens.c \
 				lexer/tokenize.c
 SRC_PARSER  =	parse/free_ast.c parse/handlers.c parse/parse_input.c \
 				parse/parse_segments.c
+SRC_SIGNAL  =	signals/ft_signal_setup.c signals/heredoc_signals.c
 
 OBJ_DIR = ./dir/
 OBJ = $(SRC:%.c=$(OBJ_DIR)%.o)

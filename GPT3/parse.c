@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-extern volatile sig_atomic_t    g_exit_status;
+extern volatile sig_atomic_t	g_exit_status;
 
 static char **env_list;  /* current environment for expansions */
 
@@ -287,7 +287,8 @@ static void add_arg(t_command *cmd, const char *val) {
 }
 
 /* ───────── allocate a new command in the pipeline if needed ───────── */
-static void new_command_if_needed(t_command **cmd_head, t_command **cmd_tail, int *need_cmd) {
+static void new_command_if_needed(t_command **cmd_head, t_command **cmd_tail, int *need_cmd)
+{
 	if (*need_cmd) {
 		t_command *cm = ft_calloc(1, sizeof(*cm));
 		if (!cm) { perror("minishell"); exit(EXIT_FAILURE); }
@@ -357,10 +358,12 @@ static int handle_redirection(t_token *tok, int *idx, int n, t_command *cur) {
 			}
 			char *lim = tok[*idx].value;
 			int no_expand = tok[*idx].quoted;
-			setup_heredoc_signals();
+			ft_signals_heredoc_setup();
 			/* read heredoc lines until limiter */
 			while (1) {
 				char *line = readline("> ");
+				if (g_exit_status == 130)
+					break;
 				if (!line) {
 					write(2, "minishell: warning: here-document delimited by end-of-file (wanted `", 65);
 					write(2, lim, strlen(lim));
@@ -429,9 +432,11 @@ static int handle_redirection(t_token *tok, int *idx, int n, t_command *cur) {
 				free(line);
 			}
 			close(fd);
-			setup_signals();
-			if (g_exit_status == 130) {
+			ft_signal_setup();
+			if (g_exit_status == 130)
+			{
 				/* aborted by Ctrl-C */
+				free_commands(cur);
 				unlink(tmp_name);
 				return -1;
 			}

@@ -26,7 +26,7 @@ static void	ft_parent_wait(pid_t *pid, int n)
 		waitpid(pid[i], &st, 0);
 		i++;
 	}
-	setup_signals();
+	ft_signal_setup();
 	if (WIFEXITED(st))
 		g_exit_status = WEXITSTATUS(st);
 	else if (WIFSIGNALED(st))

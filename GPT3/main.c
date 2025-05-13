@@ -2,7 +2,6 @@
 
 extern volatile sig_atomic_t	g_exit_status;
 
-/* Free a duplicated environment */
 void	ft_envpfree(char **envp)
 {
 	int	i;
@@ -18,7 +17,6 @@ void	ft_envpfree(char **envp)
 	free(envp);
 }
 
-/* Duplicate the environment array */
 char	**ft_dupenvp(char **envp)
 {
 	size_t	count;
@@ -89,11 +87,11 @@ int	main(int argc, char **argv, char **envp)
 		ft_putstr_fd("minishell: env memory alloc failed\n", STDERR_FILENO);
 		exit(EXIT_FAILURE);
 	}
-	setup_signals();
+	ft_signal_setup();
 	ft_mainloop(env);
 	g_exit_status = g_exit_status & 0xFF;
 	rl_clear_history();
 	ft_envpfree(env);
-	signals_print_handler(1);
+	ft_signals_print_handler(1);
 	return (g_exit_status);
 }

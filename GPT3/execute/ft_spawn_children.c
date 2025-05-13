@@ -46,7 +46,7 @@ static void	child_exec(t_command *c, int idx, int n, char **env)
 {
 	char	*path;
 
-	restore_default_signals();
+	ft_default_signals();
 	child_dup_pipes(c, idx, n);
 	child_redir(c);
 	if (c->subshell)
