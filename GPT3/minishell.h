@@ -111,7 +111,7 @@ void		ft_tok_append(t_tokenize *t, char c);
 int			ft_is_operator(char c);
 void		ft_handle_expansion(t_tokenize *t, const char *input, int *i);
 int			ft_handle_filler(t_tokenize *t, const char *input, \
-	int *i);
+							int *i);
 void		ft_handle_operator(t_tokenize *t, const char *input, int *i);
 void		ft_expand_exit_status(t_tokenize *t);
 void		ft_tok_append_str(t_tokenize *t, char *val);
