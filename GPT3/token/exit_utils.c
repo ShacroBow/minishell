@@ -14,9 +14,9 @@ void	ft_free_env_list(char **env_list)
 	env_list = NULL;
 }
 
-void	free_token_array(t_token *tok, t_tokenize *t)
+static void	ft_free_token_array(t_token *tok, t_tokenize *t)
 {
-	int i;
+	int	i;
 
 	if (!tok)
 		return ;
@@ -31,7 +31,7 @@ void	free_token_array(t_token *tok, t_tokenize *t)
 	tok = NULL;
 }
 
-void	exit_error(char *context)
+void	ft_exit_error(char *context)
 {
 	ft_putstr_fd("minishell: ", STDERR_FILENO);
 	ft_putstr_fd(context, STDERR_FILENO);
@@ -41,11 +41,11 @@ void	exit_error(char *context)
 	exit(EXIT_FAILURE);
 }
 
-void	clean_exit_tokenize(t_tokenize *t, char *msg)
+void	ft_exit_tokenize(t_tokenize *t, char *msg)
 {
 	if (t->buf)
 		free(t->buf);
-	free_token_array(t->tok, t);
+	ft_free_token_array(t->tok, t);
 	ft_free_env_list(t->env_list);
-	exit_error(msg);
+	ft_exit_error(msg);
 }

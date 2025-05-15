@@ -52,22 +52,20 @@ static void	ft_mainloop(char **env)
 		if (!line)
 		{
 			write(1, "exit\n", 5);
-			free(line);
 			break ;
 		}
 		if (*line)
 			add_history(line);
 		segs = parse_input(line, &env);
-		if (segs)
-		{
-			if (ft_execute(segs) == -1)
-				break ;
-			free_segments(segs);
-		}
+		if (segs && ft_execute(segs) == -1)
+			break ;
+		free_segments(segs);
 		rl_on_new_line();
 		free(line);
+		line = NULL;
 		g_exit_status = g_exit_status & 0xFF;
 	}
+	free(line);
 }
 
 int	main(int argc, char **argv, char **envp)

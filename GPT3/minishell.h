@@ -17,6 +17,7 @@
 # include "libft/libft.h"
 # include <limits.h>
 # include <ctype.h>
+# include <sys/ioctl.h>
 
 extern volatile sig_atomic_t	g_exit_status;
 typedef int						t_pipe_fd[2];
@@ -44,7 +45,7 @@ typedef struct s_token
 	int			quoted;
 }	t_token;
 
-typedef struct	s_tokenize
+typedef struct s_tokenize
 {
 	char	*buf;
 	t_token	*tok;
@@ -70,6 +71,7 @@ typedef struct s_command
 	t_pipe_fd			*pipe_tab;
 	struct s_segment	*subshell_segments;
 	struct s_command	*next;
+	char				**envp;
 }	t_command;
 
 typedef struct s_segment
@@ -80,25 +82,61 @@ typedef struct s_segment
 	char				***envp;
 }	t_segment;
 
-/* lexer functions */
-t_token		*tokenize(const char *input, int *out_count, char **env_list);
-void		create_token(t_tokenize *t);
-void		buf_append(t_tokenize *t, char c);
-int			is_operator(char c);
-void		handle_var_expansion(t_tokenize *t, const char *input, int *i);
-int			handle_quotes_and_whitespace(t_tokenize *t, const char *input, int *i);
-void		handle_operator(t_tokenize *t, const char *input, int *i);
-void		expand_exit_status(t_tokenize *t);
-void		append_value_to_buffer(t_tokenize *t, char *val);
+//Parse
+
+typedef struct s_parse_segments
+{
+	int	idx;
+	int	n;
+	int	in_sub;
+}	t_parse_segments;
+
+typedef struct s_ctx
+{
+	t_token				*tok;
+	t_parse_segments	*ps;
+	char				**env;
+	t_segment			**seg_head;
+	t_segment			**seg_tail;
+	t_command			*cmd_head;
+	t_command			*cmd_tail;
+	int					need_cmd;
+}	t_ctx;
+
+//Parse
+
+/* tokenizer */
+void		ft_create_token(t_tokenize *t);
+void		ft_tok_append(t_tokenize *t, char c);
+int			ft_is_operator(char c);
+void		ft_handle_expansion(t_tokenize *t, const char *input, int *i);
+int			ft_handle_filler(t_tokenize *t, const char *input, \
+	int *i);
+void		ft_handle_operator(t_tokenize *t, const char *input, int *i);
+void		ft_expand_exit_status(t_tokenize *t);
+void		ft_tok_append_str(t_tokenize *t, char *val);
 void		ft_free_env_list(char **env_list);
-void		free_token_array(t_token *tok, t_tokenize *t);
-void		exit_error(char *context);
-void		clean_exit_tokenize(t_tokenize *t, char *msg);
+void		ft_exit_error(char *context);
+void		ft_exit_tokenize(t_tokenize *t, char *msg);
+char		*ft_get_env_value(t_tokenize *t, char *name);
+
+t_token		*ft_tokenize(const char *input, int *out_count, char **env_list);
 
 /* Parsing */
-t_segment	*parse_input(const char *input, char ***envp);
+t_segment	*parse_segments(t_token *tok, t_parse_segments *ps, char **env);
+void		new_command_if_needed(t_command **chead, t_command **ctail, int *needc);
+int			handle_word(t_token *tok, int *idx, t_command *cur);
+int			handle_parenthesis(t_token *tok, int *idx, int n, t_command *cur);
+int			handle_redirection(t_token *tok, int *idx, int n, t_command *cur);
+int			handle_bool_or_pipe(t_token *tok, int *idx, t_segment **seg_h, t_segment **seg_t, t_command **pipe_h, t_command **pipe_t, int *need_cmd);
+int			redir_error(void);
+void		push_pipeline_to_segments(t_segment **h, t_segment **t, t_command *pipe, t_tokentype op);
+
+
 void		free_commands(t_command *cmd);
 void		free_segments(t_segment *seg);
+
+t_segment	*parse_input(const char *input, char ***envp);
 
 /* execution */
 char		*ft_find_binary(const char *cmd, char **envp);
@@ -126,9 +164,13 @@ char		**ft_dupenvp(char **envp);
 void		ft_envpfree(char **envp);
 
 /* Signal handling */
-void		setup_signals(void);
-void		setup_heredoc_signals(void);
-void		restore_default_signals(void);
-void		signals_print_handler(int print);
+void		ft_signals_heredoc_setup(void);
+void		ft_default_signals(void);
+void		ft_signals_print_handler(int print);
 
-#endif /* MINISHELL_H */
+void		ft_signal_setup(void);
+
+//valgrind --suppressions=file.supp --leak-check=full --show-leak-kinds=all
+// --track-fds=yes --track-origins=yes ./minishell
+
+#endif

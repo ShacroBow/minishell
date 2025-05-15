@@ -1,15 +1,11 @@
 #include "../minishell.h"
 
 extern volatile sig_atomic_t g_exit_status;
-static char **env_list;
 
-
-/* ───────── forward declarations ───────── */
-static t_segment *parse_segments(t_token *tok, int *idx, int n, int in_sub);
 
 /* free_tokens.c – release the token array */
 
-void    free_tokens(t_token *tok, int count)
+void	free_tokens(t_token *tok, int count)
 {
 	if (!tok)
 		return;
@@ -54,18 +50,24 @@ void free_segments(t_segment *seg)
 }
 
 /* ───────── dynamic buffer append for tokenization ───────── */
-static void buf_append(char **buf, int *cap, int *len, char c) {
+static void buf_append(char **buf, int *cap, int *len, char c)
+{
 	if (*len + 1 >= *cap) {
 		*cap *= 2;
 		*buf = realloc(*buf, *cap);
-		if (!*buf) { perror("minishell"); exit(EXIT_FAILURE); }
+		if (!*buf)
+		{
+			perror("minishell");
+			exit(EXIT_FAILURE);
+		}
 	}
 	(*buf)[(*len)++] = c;
 	(*buf)[*len] = '\0';
 }
 
 /* ───────── wildcard pattern matching (recursive) ───────── */
-static int match_pattern(const char *pat, const char *text) {
+static int match_pattern(const char *pat, const char *text)
+{
 	if (!*pat) return !*text;
 	if (*pat == '*') {
 		while (*(pat+1) == '*') pat++;
@@ -79,7 +81,8 @@ static int match_pattern(const char *pat, const char *text) {
 }
 
 /* ───────── expand wildcard pattern to list of matches ───────── */
-static char **expand_wildcard(const char *pattern) {
+static char **expand_wildcard(const char *pattern)
+{
 	DIR *d = opendir(".");
 	if (!d) return NULL;
 	struct dirent *ent;
@@ -121,14 +124,16 @@ static char **expand_wildcard(const char *pattern) {
 }
 
 /* ───────── error message for syntax errors ───────── */
-static int redir_error(void) {
+int redir_error(void)
+{
 	write(2, "minishell: syntax error near unexpected token\n", 47);
 	g_exit_status = 258;
-	return -1;
+	return (-1);
 }
 
 /* ───────── add an argument to a command's argv ───────── */
-static void add_arg(t_command *cmd, const char *val) {
+static void add_arg(t_command *cmd, const char *val)
+{
 	int argc = 0;
 	while (cmd->argv && cmd->argv[argc])
 		argc++;
@@ -144,7 +149,7 @@ static void add_arg(t_command *cmd, const char *val) {
 }
 
 /* ───────── allocate a new command in the pipeline if needed ───────── */
-static void new_command_if_needed(t_command **cmd_head, t_command **cmd_tail, int *need_cmd)
+void new_command_if_needed(t_command **cmd_head, t_command **cmd_tail, int *need_cmd)
 {
 	if (*need_cmd) {
 		t_command *cm = ft_calloc(1, sizeof(*cm));
@@ -159,10 +164,16 @@ static void new_command_if_needed(t_command **cmd_head, t_command **cmd_tail, in
 }
 
 /* ───────── handle subshell start '(' ───────── */
-static int handle_parenthesis(t_token *tok, int *idx, int n, t_command *cur) {
+int handle_parenthesis(t_token *tok, int *idx, int n, t_command *cur)
+{
+	t_parse_segments	ps;
+
 	(*idx)++;  /* skip '(' */
 	cur->subshell = 1;
-	cur->subshell_segments = parse_segments(tok, idx, n, 1);
+	ps.idx = *idx;
+	ps.n = n;
+	ps.in_sub = 1;
+	cur->subshell_segments = parse_segments(tok, &ps, cur->envp);
 	cur->argv = malloc(sizeof(char*) * 2);
 	if (!cur->argv) { perror("minishell"); exit(EXIT_FAILURE); }
 	cur->argv[0] = ft_strdup("SUBSHELL");
@@ -171,7 +182,8 @@ static int handle_parenthesis(t_token *tok, int *idx, int n, t_command *cur) {
 }
 
 /* ───────── handle a word token (arguments and wildcards) ───────── */
-static int handle_word(t_token *tok, int *idx, t_command *cur) {
+int handle_word(t_token *tok, int *idx, t_command *cur)
+{
 	char *val = tok[*idx].value;
 	if (!tok[*idx].quoted && ft_strchr(val, '*')) {
 		char **matches = expand_wildcard(val);
@@ -192,7 +204,11 @@ static int handle_word(t_token *tok, int *idx, t_command *cur) {
 }
 
 /* ───────── handle redirection tokens (<, <<, >, >>) ───────── */
-static int handle_redirection(t_token *tok, int *idx, int n, t_command *cur) {
+int handle_redirection(t_token *tok, int *idx, int n, t_command *cur)
+{
+	char **env;
+
+	env = cur->envp;
 	t_tokentype typ = tok[*idx].type;
 	(*idx)++;
 	if (*idx >= n || tok[*idx].type != TOK_WORD)
@@ -259,10 +275,10 @@ static int handle_redirection(t_token *tok, int *idx, int n, t_command *cur) {
 							char *name = ft_strndup(line + x + 1, j - (x + 1));
 							size_t namelen = ft_strlen(name);
 							char *val = NULL;
-							for (int k = 0; env_list && env_list[k]; ++k) {
-								if (!ft_strncmp(env_list[k], name, namelen) &&
-									env_list[k][namelen] == '=') {
-									val = env_list[k] + namelen + 1;
+							for (int k = 0; env && env[k]; ++k) {
+								if (!ft_strncmp(env[k], name, namelen) &&
+									env[k][namelen] == '=') {
+									val = env[k] + namelen + 1;
 									break;
 								}
 							}
@@ -314,8 +330,8 @@ static int handle_redirection(t_token *tok, int *idx, int n, t_command *cur) {
 }
 
 /* ───────── push a completed pipeline into segment list ───────── */
-static void push_pipeline_to_segments(t_segment **h, t_segment **t,
-									t_command *pipe, t_tokentype op) {
+void push_pipeline_to_segments(t_segment **h, t_segment **t, t_command *pipe, t_tokentype op)
+{
 	t_segment *seg = malloc(sizeof(*seg));
 	if (!seg) { perror("minishell"); exit(EXIT_FAILURE); }
 	seg->pipeline = pipe;
@@ -329,7 +345,7 @@ static void push_pipeline_to_segments(t_segment **h, t_segment **t,
 }
 
 /* ───────── handle &&, ||, | operators ───────── */
-static int handle_bool_or_pipe(t_token *tok, int *idx,
+int handle_bool_or_pipe(t_token *tok, int *idx,
 		t_segment **seg_h, t_segment **seg_t, t_command **pipe_h, t_command **pipe_t, int *need_cmd)
 {
 	t_tokentype typ = tok[*idx].type;
@@ -349,54 +365,18 @@ static int handle_bool_or_pipe(t_token *tok, int *idx,
 }
 
 /* ───────── recursive descent parser for command sequence ───────── */
-static t_segment *parse_segments(t_token *tok, int *idx, int n, int in_sub) {
-	t_segment *seg_head = NULL, *seg_tail = NULL;
-	t_command *cmd_head = NULL, *cmd_tail = NULL;
-	int need_cmd = 1;
-	while (*idx < n) {
-		t_tokentype typ = tok[*idx].type;
-		if (typ == TOK_RPAREN) {  /* end of subshell */
-			if (!in_sub)
-				return (redir_error(), free_segments(seg_head), NULL);
-			(*idx)++;
-			break;
-		}
-		if (typ == TOK_PIPE || typ == TOK_AND || typ == TOK_OR) {
-			if (handle_bool_or_pipe(tok, idx, &seg_head, &seg_tail,
-									&cmd_head, &cmd_tail, &need_cmd) < 0)
-				return (free_segments(seg_head), NULL);
-			continue;
-		}
-		new_command_if_needed(&cmd_head, &cmd_tail, &need_cmd);
-		t_command *cur = cmd_tail;
-		/* dispatch token types */
-		if (typ == TOK_LPAREN) {
-			if (handle_parenthesis(tok, idx, n, cur) < 0)
-				return (free_segments(seg_head), NULL);
-		} else if (typ == TOK_WORD) {
-			if (handle_word(tok, idx, cur) < 0)
-				return (free_segments(seg_head), NULL);
-		} else if (typ == TOK_REDIR_IN || typ == TOK_HEREDOC ||
-				typ == TOK_REDIR_OUT || typ == TOK_APPEND) {
-			if (handle_redirection(tok, idx, n, cur) < 0)
-				return (free_segments(seg_head), NULL);
-		} else {
-			(*idx)++;
-		}
-	}
-	if (cmd_head)
-		push_pipeline_to_segments(&seg_head, &seg_tail, cmd_head, 0);
-	return seg_head;
-}
 
-static t_segment	*handle_parse_segments(t_token *tok, int tcount, char ***envp)
+
+static t_segment	*handle_parse_segments(t_token *tok, int tcount, char **env)
 {
-	int			idx;
-	t_segment	*ast;
+	t_segment			*ast;
+	t_parse_segments	ps;
 
-	idx = 0;
-	ast = parse_segments(tok, &idx, tcount, 0);
-	if (idx < tcount && ast)
+	ps.idx = 0;
+	ps.in_sub = 0;
+	ps.n = tcount;
+	ast = parse_segments(tok, &ps , env);
+	if (ps.idx < tcount && ast)
 	{
 		ft_putstr_fd("minishell: syntax error near unexpected token\n", STDERR_FILENO);
 		g_exit_status = 258;
@@ -409,46 +389,41 @@ static t_segment	*handle_parse_segments(t_token *tok, int tcount, char ***envp)
 /* ───────── top-level parse function ───────── */
 static int  detect_unclosed_quotes(const char *input)
 {
-    int quotes_s;
-    int quotes_d;
-    int i;
+	int quotes_s;
+	int quotes_d;
+	int i;
 
-    quotes_s = 0;
-    quotes_d = 0;
-    i = 0;
-    while (input[i] != '\0')
-    {
-        if (input[i] == '\'' && !quotes_d)
-            quotes_s ^= 1;
-        else if (input[i] == '"' && !quotes_s)
-            quotes_d ^= 1;
-        i++;
-    }
-    return (quotes_s || quotes_d);
+	quotes_s = 0;
+	quotes_d = 0;
+	i = 0;
+	while (input[i] != '\0')
+	{
+		if (input[i] == '\'' && !quotes_d)
+			quotes_s ^= 1;
+		else if (input[i] == '"' && !quotes_s)
+			quotes_d ^= 1;
+		i++;
+	}
+	return (quotes_s || quotes_d);
 }
-
 
 /* ───────── top-level parse function ───────── */
 t_segment *parse_input(const char *input, char ***envp)
 {
-	int			tcount;
-	//int			idx;
-	t_token		*tok;
-	t_segment	*ast;
+	int					tcount;
+	t_token				*tok;
+	t_segment			*ast;
 
-	//env_list = *envp;  /* set current env for expansions */	
 	tcount = 0;
-	//idx = 0;
 	if (detect_unclosed_quotes(input))
 	{
 		ft_putstr_fd("minishell: syntax error unclosed quote\n", STDERR_FILENO);
 		return (g_exit_status = 258, NULL);
 	}
-	//tok = tokenize(input, &tcount, env_list);
-	tok = tokenize(input, &tcount, *envp);
+	tok = ft_tokenize(input, &tcount, *envp);
 	if (!tok)
-		return NULL;
-	ast = handle_parse_segments(tok, tcount, envp);
+		return (NULL);
+	ast = handle_parse_segments(tok, tcount, *envp);
 	free_tokens(tok, tcount);
 	if (ast)
 		ast->envp = envp;
