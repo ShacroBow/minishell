@@ -1,21 +1,10 @@
 #include "../minishell.h"
 
-void	buf_append(char **buf, int *cap, int *len, char c)
+static void	add_end_token(t_tokenize *t)
 {
-	int	new_cap;
-
-	if (*len + 1 >= *cap)
-	{
-		if (*cap > INT_MAX / 2)
-			exit_error("Buffer resize failed: capacity overflow");
-		new_cap = *cap * 2;
-		*cap = new_cap;
-		*buf = ft_resize_buffer(*buf, *cap);
-		if (!*buf)
-			exit_error("Allocation new buffer malloc failed");
-	}
-	(*buf)[(*len)++] = c;
-	(*buf)[*len] = '\0';
+	t->tok[t->count].type = TOK_END;
+	t->tok[t->count].value = NULL;
+	t->tok[t->count].quoted = 0;
 }
 
 void	create_token(t_tokenize *t)
@@ -30,8 +19,8 @@ void	create_token(t_tokenize *t)
 	t->len = 0;
 	t->buf = ft_calloc(t->cap, sizeof(char));
 	if (!t->buf)
-		exit_error("Create new token malloc failed");
-	t->buf[0] = '\0';
+		clean_exit_tokenize(t, "Create new token malloc failed");
+	//t->buf[0] = '\0';
 	t->quoted = 0;
 }
 
@@ -49,7 +38,7 @@ static void	start_tokenize(t_tokenize *t, const char *input, int *i)
 		handle_var_expansion(t, input, i);
 			return ;
 	}
-	buf_append(&t->buf, &t->cap, &t->len, input[*i]);
+	buf_append(t, input[*i]);
 	if (t->in_s || t->in_d)
 		t->quoted = 1;
 	(*i)++;
@@ -63,7 +52,8 @@ static void	init_struct_tokenization(t_tokenize *t, const char *input, char **en
 	t->buf = ft_calloc(t->cap, sizeof(char));
 	if (!t->buf)
 		exit_error("Token buffer initialisation malloc failed");
-	t->tok = malloc(sizeof(t_token) * (ft_strlen(input) + 1));
+	t->size_input = ft_strlen(input) + 1;
+	t->tok = malloc(sizeof(t_token) * (t->size_input));
 	if (!t->tok)
 	{
 		free(t->buf);
@@ -73,6 +63,8 @@ static void	init_struct_tokenization(t_tokenize *t, const char *input, char **en
 	t->in_d = 0;
 	t->quoted = 0;
 	t->env_list = env_list;
+	if (!t->env_list ||!(*(t->env_list)))
+		clean_exit_tokenize(t, "Environnement variable empty");
 	t->is_heredoc = 0;
 }
 
@@ -93,5 +85,6 @@ t_token	*tokenize(const char *input, int *out_count, char **env_list)
 	else
 		free(t.buf);
 	*out_count = t.count;
+	add_end_token(&t);
 	return (t.tok);
 }

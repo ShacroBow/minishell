@@ -4,8 +4,9 @@ SRC_BUILTIN =	builtins/ft_builtins.c builtins/ft_exit.c builtins/ft_unset.c \
 				builtins/ft_export.c builtins/ft_cd.c builtins/ft_echo.c
 SRC_EXECUTE =	execute/ft_execute.c execute/ft_find_binary.c execute/ft_run_pipeline.c \
 				execute/ft_spawn_children.c execute/ft_make_pipes.c 
-SRC_LEXER   =	lexer/lexer.c lexer/ft_lexer_utils.c lexer/ft_lexer_quotes.c \
-				lexer/ft_lexer_operators.c lexer/ft_lexer_expand_var.c
+SRC_LEXER   =	lexer/ft_lexer.c lexer/ft_lexer_utils.c lexer/ft_lexer_quotes.c \
+				lexer/ft_lexer_operators.c lexer/ft_lexer_expand_var.c \
+				lexer/ft_lexer_free_error.c
 SRC_PARSER  =	parse/parse_input.c
 SRC_SIGNAL  =	signals/ft_signal_setup.c signals/heredoc_signals.c
 

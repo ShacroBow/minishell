@@ -21,7 +21,7 @@ static char	*get_env_value(t_tokenize *t, char *name)
 	return (getenv(name));
 }
 
-static char	*extract_simple_name(const char *input, int *i)
+static char	*extract_simple_name(t_tokenize *t, const char *input, int *i)
 {
     int		j;
     char	*name;
@@ -33,12 +33,12 @@ static char	*extract_simple_name(const char *input, int *i)
 		j++;
 	name = ft_strndup(input + *i + 1, j - (*i + 1));
 	if (!name)
-		exit_error("Var name malloc failed");
+		clean_exit_tokenize(t, "$VAR malloc failed");
 	*i = j;
 	return (name);
 }
 
-static char	*extract_braced_name(const char *input, int *i)
+static char	*extract_braced_name(t_tokenize *t, const char *input, int *i)
 {
 	int		j;
 	char	*name;
@@ -50,7 +50,7 @@ static char	*extract_braced_name(const char *input, int *i)
 		return (NULL);
 	name = ft_strndup(input + *i + 2, j - (*i + 2));
 	if (!name)
-		exit_error("Var name malloc failed");
+		clean_exit_tokenize(t, "${VAR} malloc failed");
 	j++;
 	*i = j;
 	return (name);
@@ -73,12 +73,12 @@ void	handle_var_expansion(t_tokenize *t, const char *input, int *i)
 		return ;
 	}
 	if (input[*i + 1] == '{')
-		name = extract_braced_name(input, i);
+		name = extract_braced_name(t, input, i);
 	else
-		name = extract_simple_name(input, i);
+		name = extract_simple_name(t, input, i);
 	if (name == NULL)
 	{
-		buf_append(&t->buf, &t->cap, &t->len, '$');
+		buf_append(t, '$');
 		(*i)++;
 		return ;
 	}

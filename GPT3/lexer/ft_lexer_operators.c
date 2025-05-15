@@ -37,7 +37,7 @@ static void	handle_double_operator(t_tokenize *t, const char *input, int *i)
 		t->is_heredoc = 1;
 	t->tok[t->count].value = ft_strndup(input + *i, 2);
 	if (!t->tok[t->count].value)
-		exit_error("Token type double operator malloc failed");
+		clean_exit_tokenize(t, "Token type double operator malloc failed");
 	*i += 2;
 	t->tok[t->count].type = tt;
 	t->tok[t->count].quoted = 0;
@@ -53,7 +53,7 @@ static void	handle_simple_operator(t_tokenize *t, const char *input, int *i)
 	tt = get_single_char_op_type(input[*i]);
 	t->tok[t->count].value = ft_strndup(input + *i, 1);
 	if (!t->tok[t->count].value)
-		exit_error("Token type simple operator malloc failed");
+		clean_exit_tokenize(t, "Token type simple operator malloc failed");
 	*i += 1;
 	t->tok[t->count].type = tt;
 	t->tok[t->count].quoted = 0;

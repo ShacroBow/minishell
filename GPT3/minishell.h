@@ -50,6 +50,7 @@ typedef struct	s_tokenize
 	t_token	*tok;
 	int		cap;
 	int		len;
+	int		size_input;
 	int		count;
 	int		in_s;
 	int		in_d;
@@ -82,15 +83,17 @@ typedef struct s_segment
 /* lexer functions */
 t_token		*tokenize(const char *input, int *out_count, char **env_list);
 void		create_token(t_tokenize *t);
-void		buf_append(char **buf, int *cap, int *len, char c);
+void		buf_append(t_tokenize *t, char c);
+int			is_operator(char c);
 void		handle_var_expansion(t_tokenize *t, const char *input, int *i);
 int			handle_quotes_and_whitespace(t_tokenize *t, const char *input, int *i);
 void		handle_operator(t_tokenize *t, const char *input, int *i);
-void		*ft_resize_buffer(void *ptr, size_t size);
 void		expand_exit_status(t_tokenize *t);
 void		append_value_to_buffer(t_tokenize *t, char *val);
-int			is_operator(char c);
+void		ft_free_env_list(char **env_list);
+void		free_token_array(t_token *tok, t_tokenize *t);
 void		exit_error(char *context);
+void		clean_exit_tokenize(t_tokenize *t, char *msg);
 
 /* Parsing */
 t_segment	*parse_input(const char *input, char ***envp);
