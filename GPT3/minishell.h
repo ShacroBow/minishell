@@ -44,6 +44,20 @@ typedef struct s_token
 	int			quoted;
 }	t_token;
 
+typedef struct	s_tokenize
+{
+	char	*buf;
+	t_token	*tok;
+	int		cap;
+	int		len;
+	int		count;
+	int		in_s;
+	int		in_d;
+	int		quoted;
+	int		is_heredoc;
+	char	**env_list;
+}	t_tokenize;
+
 typedef struct s_command
 {
 	char				**argv;
@@ -66,29 +80,22 @@ typedef struct s_segment
 }	t_segment;
 
 /* lexer functions */
-t_token	*tokenize(const char *input, int *out_count);
-void	process_op(const char *s, int *p, t_token *arr, int *idx);
-void	process_word(const char *s, int *p, t_token *arr, int *idx);
-void	add_tok(t_token *arr, int *idx, t_tokentype type, char *val);
-int		count_tokens(const char *s);
-char	*dup_range(const char *s, int st, int ed);
-int		is_op_char(char c);
-void	free_tokens(t_token *tok, int count);
-int		match_pattern(const char *pat, const char *text);
-char	**expand_wildcard(const char *pattern);
-void	buf_append(char **buf, int *cap, int *len, char c);
+t_token		*tokenize(const char *input, int *out_count, char **env_list);
+void		create_token(t_tokenize *t);
+void		buf_append(char **buf, int *cap, int *len, char c);
+void		handle_var_expansion(t_tokenize *t, const char *input, int *i);
+int			handle_quotes_and_whitespace(t_tokenize *t, const char *input, int *i);
+void		handle_operator(t_tokenize *t, const char *input, int *i);
+void		*ft_resize_buffer(void *ptr, size_t size);
+void		expand_exit_status(t_tokenize *t);
+void		append_value_to_buffer(t_tokenize *t, char *val);
+int			is_operator(char c);
+void		exit_error(char *context);
 
 /* Parsing */
 t_segment	*parse_input(const char *input, char ***envp);
 void		free_commands(t_command *cmd);
 void		free_segments(t_segment *seg);
-t_segment	*parse_segments(t_token *tok, int *idx, int n, int in_sub);
-int			push_pipeline(t_segment **h, t_segment **t, t_command *pipe, t_tokentype op);
-int			handle_redir(t_command *cur, t_token *tok, int *i, int n);
-int			handle_word(t_command *cur, t_token *tok, int *i);
-int			handle_subshell(t_command *cur, t_token *tok, int *i, int n);
-void		add_arg(t_command *c, const char *val);
-t_command	*new_command(void);
 
 /* execution */
 char		*ft_find_binary(const char *cmd, char **envp);
