@@ -166,14 +166,20 @@ void new_command_if_needed(t_command **cmd_head, t_command **cmd_tail, int *need
 /* ───────── handle subshell start '(' ───────── */
 int handle_parenthesis(t_token *tok, int *idx, int n, t_command *cur)
 {
-	t_parse_segments	ps;
+	t_parse_segments ps;
 
-	(*idx)++;  /* skip '(' */
+	(*idx)++;                    /* skip '(' */
 	cur->subshell = 1;
 	ps.idx = *idx;
 	ps.n = n;
 	ps.in_sub = 1;
 	cur->subshell_segments = parse_segments(tok, &ps, cur->envp);
+	if (!cur->subshell_segments)
+	{
+		/* inner parse error: abort parsing */
+		return (-1);
+	}
+	*idx = ps.idx;               /* advance outer index past ')' */
 	cur->argv = malloc(sizeof(char*) * 2);
 	if (!cur->argv) { perror("minishell"); exit(EXIT_FAILURE); }
 	cur->argv[0] = ft_strdup("SUBSHELL");

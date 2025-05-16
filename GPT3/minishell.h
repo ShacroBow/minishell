@@ -140,9 +140,9 @@ t_segment	*parse_input(const char *input, char ***envp);
 
 /* execution */
 char		*ft_find_binary(const char *cmd, char **envp);
-void		ft_run_pipeline(t_command *cmds, char **envp);
+void		ft_run_pipeline(t_command *cmds, t_segment *seg);
 t_pipe_fd	*ft_make_pipes(int n);
-void		ft_spawn_children(t_command *cmds, int n, pid_t *pid, char **env);
+void		ft_spawn_children(t_command *cmds, int n, pid_t *pid, t_segment *seg);
 
 int			ft_execute(t_segment *seg_list);
 

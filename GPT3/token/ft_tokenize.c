@@ -25,7 +25,7 @@ void	ft_create_token(t_tokenize *t)
 
 static void	ft_start_tokenize(t_tokenize *t, const char *input, int *i)
 {
-	while ((input[*i] == '(' || input[*i] == ')') && !(t->in_s || t->in_d))
+	while (input[*i + 1] != '\0' && (input[*i] == '(' || input[*i] == ')') && !(t->in_s || t->in_d))
 		(*i)++;
 	if (ft_handle_filler(t, input, i))
 		return ;
@@ -34,13 +34,13 @@ static void	ft_start_tokenize(t_tokenize *t, const char *input, int *i)
 		ft_handle_operator(t, input, i);
 		return ;
 	}
-	if (((input[*i] == '\\' && input[*i + 1] == '$') || input[*i] == '$') && \
-		!t->in_s && !t->is_heredoc)
+	if (((input[*i] == '\\' && input[*i + 1] == '$') || (input[*i] == '$' && \
+		input[*i + 1] != '\0')) && !t->in_s && !t->is_heredoc)
 	{
 		ft_handle_expansion(t, input, i);
 		return ;
 	}
-	if (input[*i] == '\\')
+	if (input[*i] == '\\' && input[*i + 1] != '\0')
 		(*i)++;
 	ft_tok_append(t, input[*i]);
 	if (t->in_s || t->in_d)

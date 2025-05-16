@@ -62,6 +62,11 @@ static void	ft_handle_simple_operator(t_tokenize *t, const char *input, int *i)
 
 void	ft_handle_operator(t_tokenize *t, const char *input, int *i)
 {
+	if (input[*i + 1] == '\0')
+	{
+		(*i)++;
+		return;
+	}
 	if ((input[*i] == '&' && input[*i + 1] == '&') \
 		|| (input[*i] == '|' && input[*i + 1] == '|') \
 		|| (input[*i] == '<' && input[*i + 1] == '<') \

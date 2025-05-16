@@ -109,6 +109,11 @@ t_segment	*parse_segments(t_token *tok, t_parse_segments *ps, char **env)
 	ctx.seg_tail = &seg_tail;
 	res = parse_loop(&ctx);
 	if (res < 0)
-		return (NULL);
+	{
+		free_segments(seg_head);
+		if (ctx.cmd_head)
+			free_commands(ctx.cmd_head);
+		return NULL;
+	}
 	return (seg_head);
 }

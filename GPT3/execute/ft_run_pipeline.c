@@ -33,7 +33,7 @@ static void	ft_parent_wait(pid_t *pid, int n)
 		g_exit_status = 128 + WTERMSIG(st);
 }
 
-void	ft_run_pipeline(t_command *cmds, char **envp)
+void	ft_run_pipeline(t_command *cmds, t_segment *seg)
 {
 	int			n;
 	t_pipe_fd	*pipes;
@@ -56,7 +56,7 @@ void	ft_run_pipeline(t_command *cmds, char **envp)
 	pids = malloc(sizeof(pid_t) * n);
 	if (!pids)
 		exit(EXIT_FAILURE);
-	ft_spawn_children(cmds, n, pids, envp);
+	ft_spawn_children(cmds, n, pids, seg);
 	ft_parent_wait(pids, n);
 	free(pipes);
 	free(pids);

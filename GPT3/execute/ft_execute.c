@@ -45,7 +45,7 @@ int	ft_execute(t_segment *seg)
 					return (free_segments(seg), -1);
 			}
 			else
-				ft_run_pipeline(cmd, *(seg->envp));
+				ft_run_pipeline(cmd, seg);
 		}
 		ft_handle_skip(seg, &skip);
 		if (seg->next)

@@ -42,7 +42,7 @@ static void	child_dup_pipes(t_command *cmds, int idx, int n)
 	}
 }
 
-static void	child_exec(t_command *c, int idx, int n, char **env)
+static int	child_exec(t_command *c, int idx, int n, char **env)
 {
 	char	*path;
 
@@ -60,13 +60,25 @@ static void	child_exec(t_command *c, int idx, int n, char **env)
 		exit(0);
 	path = ft_find_binary(c->argv[0], env);
 	if (!path)
-		(write(2, "minishell: command not found\n", 29), exit(127));
+	{
+		ft_putstr_fd("minishell: command not found\n", STDERR_FILENO);
+		return (127);
+	}
 	execve(path, c->argv, env);
 	perror(c->argv[0]);
-	exit(126);
+	return (126);
 }
 
-void	ft_spawn_children(t_command *cmds, int n, pid_t *pid, char **env)
+static void	ft_childrenfree(t_command *cmds, t_segment *seg, pid_t *pid, int ex)
+{
+	free_commands(cmds);
+	ft_envpfree(*(seg->envp));
+	free(seg);
+	free(pid);
+	exit(ex);
+}
+
+void	ft_spawn_children(t_command *cmds, int n, pid_t *pid, t_segment *seg)
 {
 	int			i;
 	t_command	*cur;
@@ -77,9 +89,9 @@ void	ft_spawn_children(t_command *cmds, int n, pid_t *pid, char **env)
 	{
 		pid[i] = fork();
 		if (pid[i] == -1)
-			exit(EXIT_FAILURE);
+			ft_childrenfree(cmds, seg, pid, EXIT_FAILURE);
 		if (pid[i] == 0)
-			child_exec(cur, i, n, env);
+			ft_childrenfree(cmds, seg, pid, child_exec(cur, i, n, *seg->envp));
 		if (i)
 			close(cmds->pipe_tab[i - 1][0]);
 		if (i < n - 1)
