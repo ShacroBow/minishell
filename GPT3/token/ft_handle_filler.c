@@ -6,7 +6,7 @@ static void	*ft_resize_buffer(void *ptr, size_t size)
 
 	new_ptr = ft_calloc(size, sizeof(char));
 	if (!new_ptr)
-		return ((void*)0);
+		return ((void *)0);
 	if (ptr)
 	{
 		ft_memcpy(new_ptr, ptr, size / 2);

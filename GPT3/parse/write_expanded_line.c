@@ -1,0 +1,69 @@
+#include "../minishell.h"
+
+static char	*get_env_val(char **env, const char *key, size_t klen)
+{
+	while (env && *env)
+	{
+		if (!ft_strncmp(*env, key, klen) && (*env)[klen] == '=')
+			return ((*env) + klen + 1);
+		env++;
+	}
+	return (getenv(ft_substr(key, 0, klen)));
+}
+
+static int	write_status(int fd)
+{
+	char	*val;
+	int		res;
+
+	val = ft_itoa(g_exit_status);
+	if (!val)
+		return (-1);
+	res = write_value(fd, val);
+	free(val);
+	return (res);
+}
+
+static int	handle_dollar(char *ln, size_t *i, char **env, int fd)
+{
+	size_t	j;
+	size_t	klen;
+	char	*val;
+
+	if (ln[*i + 1] == '?')
+	{
+		*i += 2;
+		return (write_status(fd));
+	}
+	j = *i + 1;
+	while (ft_isalnum(ln[j]) || ln[j] == '_')
+		j++;
+	klen = j - *i - 1;
+	val = get_env_val(env, ln + *i + 1, klen);
+	if (write_value(fd, val) == -1)
+		return (-1);
+	*i = j;
+	return (0);
+}
+
+int	write_expanded_line(char *ln, char **env, int fd)
+{
+	size_t	i;
+
+	i = 0;
+	while (ln[i])
+	{
+		if (ln[i] == '$')
+		{
+			if (handle_dollar(ln, &i, env, fd) == -1)
+				return (-1);
+			continue ;
+		}
+		if (write(fd, &ln[i], 1) == -1)
+			return (-1);
+		i++;
+	}
+	if (write(fd, "\n", 1) == -1)
+		return (-1);
+	return (0);
+}

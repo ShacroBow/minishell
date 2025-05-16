@@ -41,6 +41,39 @@ char	**ft_dupenvp(char **envp)
 	return (copy);
 }
 
+static char	*dup_and_shift(char **st, char *nl)
+{
+	char	*line;
+
+	*nl = '\0';
+	line = ft_strdup(*st);
+	if (!line)
+		return (NULL);
+	ft_memmove(*st, nl + 1, ft_strlen(nl + 1) + 1);
+	return (line);
+}
+
+static char	*ft_readline(const char *prompt)
+{
+	static char	*stash;
+	char		*nl;
+	char		*line;
+
+	while (!stash || !*stash)
+	{
+		free(stash);
+		stash = readline(prompt);
+		if (!stash)
+			return (NULL);
+	}
+	nl = ft_strchr(stash, '\n');
+	if (nl)
+		return (dup_and_shift(&stash, nl));
+	line = stash;
+	stash = NULL;
+	return (line);
+}
+
 static void	ft_mainloop(char **env)
 {
 	char		*line;
@@ -48,7 +81,7 @@ static void	ft_mainloop(char **env)
 
 	while (1)
 	{
-		line = readline("minishell$ ");
+		line = ft_readline("minishell$ ");
 		if (!line)
 		{
 			write(1, "exit\n", 5);

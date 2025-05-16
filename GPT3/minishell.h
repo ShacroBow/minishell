@@ -21,6 +21,7 @@
 
 extern volatile sig_atomic_t	g_exit_status;
 typedef int						t_pipe_fd[2];
+# define HD_PREFIX "/tmp/minishell_hd_"
 
 /* token / AST structure definitions */
 typedef enum e_tokentype
@@ -105,6 +106,7 @@ typedef struct s_ctx
 
 //Parse
 
+
 /* tokenizer */
 void		ft_create_token(t_tokenize *t);
 void		ft_tok_append(t_tokenize *t, char c);
@@ -131,6 +133,11 @@ int			handle_redirection(t_token *tok, int *idx, int n, t_command *cur);
 int			handle_bool_or_pipe(t_token *tok, int *idx, t_segment **seg_h, t_segment **seg_t, t_command **pipe_h, t_command **pipe_t, int *need_cmd);
 int			redir_error(void);
 void		push_pipeline_to_segments(t_segment **h, t_segment **t, t_command *pipe, t_tokentype op);
+void		buf_append(char **buf, int *cap, int *len, char c);
+int			write_value(int fd, const char *s);
+int			write_expanded_line(char *ln, char **env, int fd);
+int			handle_here_doc(t_token *tk, int *idx, t_command *c);
+char		*hd_tmp_name(void);
 
 
 void		free_commands(t_command *cmd);

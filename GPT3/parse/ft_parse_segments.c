@@ -1,24 +1,5 @@
 #include "../minishell.h"
 
-#include "../minishell.h"
-
-/* ───────── local context ───────── */
-
-
-/* ───────── tiny helpers ───────── */
-
-static int	handle_rparen(t_ctx *c)
-{
-	if (c->ps->in_sub == 0)
-	{
-		redir_error();
-		free_segments(*(c->seg_head));
-		return (-1);
-	}
-	(c->ps->idx)++;
-	return (1);
-}
-
 static int	handle_pipe_andor(t_ctx *c, t_tokentype typ)
 {
 	if (c->need_cmd)
@@ -60,12 +41,10 @@ static int	process_iter(t_ctx *c)
 	t_tokentype	typ;
 
 	typ = c->tok[c->ps->idx].type;
-	if (typ == TOK_RPAREN)
-		return (handle_rparen(c));
 	if (typ == TOK_PIPE || typ == TOK_AND || typ == TOK_OR)
 		return (handle_pipe_andor(c, typ));
 	if (c->need_cmd)
-		new_command_if_needed(&(c->cmd_head),
+		new_command_if_needed(&(c->cmd_head), \
 				&(c->cmd_tail), &(c->need_cmd));
 	c->cmd_tail->envp = c->env;
 	return (dispatch_tok(c));
@@ -91,8 +70,6 @@ static int	parse_loop(t_ctx *c)
 	return (0);
 }
 
-/* ───────── public entry ───────── */
-
 t_segment	*parse_segments(t_token *tok, t_parse_segments *ps, char **env)
 {
 	t_segment	*seg_head;
@@ -113,7 +90,7 @@ t_segment	*parse_segments(t_token *tok, t_parse_segments *ps, char **env)
 		free_segments(seg_head);
 		if (ctx.cmd_head)
 			free_commands(ctx.cmd_head);
-		return NULL;
+		return (NULL);
 	}
 	return (seg_head);
 }

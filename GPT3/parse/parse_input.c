@@ -50,7 +50,7 @@ void free_segments(t_segment *seg)
 }
 
 /* ───────── dynamic buffer append for tokenization ───────── */
-static void buf_append(char **buf, int *cap, int *len, char c)
+void buf_append(char **buf, int *cap, int *len, char c)
 {
 	if (*len + 1 >= *cap) {
 		*cap *= 2;
@@ -210,130 +210,7 @@ int handle_word(t_token *tok, int *idx, t_command *cur)
 }
 
 /* ───────── handle redirection tokens (<, <<, >, >>) ───────── */
-int handle_redirection(t_token *tok, int *idx, int n, t_command *cur)
-{
-	char **env;
 
-	env = cur->envp;
-	t_tokentype typ = tok[*idx].type;
-	(*idx)++;
-	if (*idx >= n || tok[*idx].type != TOK_WORD)
-		return redir_error();
-	char *file = tok[*idx].value;
-	if (typ == TOK_REDIR_IN || typ == TOK_HEREDOC) {
-		if (cur->infile && cur->heredoc)
-			unlink(cur->infile);
-		free(cur->infile);
-		cur->heredoc = 0;
-		if (typ == TOK_HEREDOC) {
-			/* open a temp file for heredoc content */
-			char tmp_name[PATH_MAX];
-			static int hd_count = 0;
-			sprintf(tmp_name, "/tmp/minishell_hd_%d_%d", getpid(), hd_count++);
-			int fd = open(tmp_name, O_WRONLY | O_CREAT | O_TRUNC, 0600);
-			if (fd < 0) {
-				perror("minishell");
-				return -1;
-			}
-			char *lim = tok[*idx].value;
-			int no_expand = tok[*idx].quoted;
-			ft_signals_heredoc_setup();
-			/* read heredoc lines until limiter */
-			while (1) {
-				char *line = readline("> ");
-				if (g_exit_status == 130)
-					break;
-				if (!line) {
-					write(2, "minishell: warning: here-document delimited by end-of-file (wanted `", 65);
-					write(2, lim, strlen(lim));
-					write(2, "`)\n", 3);
-					break;
-				}
-				if (strcmp(line, lim) == 0) {
-					free(line);
-					break;
-				}
-				if (!no_expand) {
-					/* expand variables in heredoc content */
-					char *expanded = NULL;
-					int cap2 = 128, len2 = 0;
-					expanded = malloc(cap2);
-					if (!expanded) { perror("minishell"); exit(EXIT_FAILURE); }
-					expanded[0] = 0;
-					for (int x = 0; line[x]; ) {
-						if (line[x] == '$') {
-							if (line[x+1] == '?') {
-								char tmp[16];
-								int l = sprintf(tmp, "%d", g_exit_status);
-								for (int k = 0; k < l; ++k)
-									buf_append(&expanded, &cap2, &len2, tmp[k]);
-								x += 2;
-								continue;
-							}
-							int j = x + 1;
-							if (!ft_isalnum(line[j]) && line[j] != '_') {
-								buf_append(&expanded, &cap2, &len2, '$');
-								x++;
-								continue;
-							}
-							while (ft_isalnum(line[j]) || line[j] == '_')
-								j++;
-							char *name = ft_strndup(line + x + 1, j - (x + 1));
-							size_t namelen = ft_strlen(name);
-							char *val = NULL;
-							for (int k = 0; env && env[k]; ++k) {
-								if (!ft_strncmp(env[k], name, namelen) &&
-									env[k][namelen] == '=') {
-									val = env[k] + namelen + 1;
-									break;
-								}
-							}
-							if (!val)
-								val = getenv(name);
-							if (val) {
-								for (int k = 0; val[k]; ++k)
-									buf_append(&expanded, &cap2, &len2, val[k]);
-							}
-							free(name);
-							x = j;
-							continue;
-						}
-						buf_append(&expanded, &cap2, &len2, line[x]);
-						x++;
-					}
-					write(fd, expanded, len2);
-					write(fd, "\n", 1);
-					free(expanded);
-				} else {
-					write(fd, line, strlen(line));
-					write(fd, "\n", 1);
-				}
-				free(line);
-			}
-			close(fd);
-			ft_signal_setup();
-			if (g_exit_status == 130)
-			{
-				/* aborted by Ctrl-C */
-				free_commands(cur);
-				unlink(tmp_name);
-				return -1;
-			}
-			cur->infile = ft_strdup(tmp_name);
-			cur->heredoc = 1;
-		} else {
-			cur->infile = ft_strdup(file);
-			if (!cur->infile) { perror("minishell"); exit(EXIT_FAILURE); }
-		}
-	} else {  /* output redirection */
-		free(cur->outfile);
-		cur->outfile = ft_strdup(file);
-		if (!cur->outfile) { perror("minishell"); exit(EXIT_FAILURE); }
-		cur->append = (typ == TOK_APPEND);
-	}
-	(*idx)++;
-	return 0;
-}
 
 /* ───────── push a completed pipeline into segment list ───────── */
 void push_pipeline_to_segments(t_segment **h, t_segment **t, t_command *pipe, t_tokentype op)

@@ -25,7 +25,8 @@ void	ft_create_token(t_tokenize *t)
 
 static void	ft_start_tokenize(t_tokenize *t, const char *input, int *i)
 {
-	while (input[*i + 1] != '\0' && (input[*i] == '(' || input[*i] == ')') && !(t->in_s || t->in_d))
+	while (input[*i + 1] != '\0' && (input[*i] == '(' || \
+			input[*i] == ')') && !(t->in_s || t->in_d))
 		(*i)++;
 	if (ft_handle_filler(t, input, i))
 		return ;

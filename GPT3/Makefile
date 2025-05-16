@@ -10,7 +10,8 @@ SRC_TOKEN   =	token/ft_tokenize.c token/utils.c token/exit_utils.c \
 				token/ft_handle_filler.c token/ft_handle_expansion.c \
 				token/ft_handle_operator.c
 
-SRC_PARSER  =	parse/parse_input.c parse/ft_parse_segments.c
+SRC_PARSER  =	parse/parse_input.c parse/ft_parse_segments.c  parse/handle_redir.c \
+				parse/write_expanded_line.c parse/handle_heredoc.c
 
 SRC_SIGNAL  =	signals/ft_signal_setup.c signals/heredoc_signals.c
 
@@ -19,7 +20,7 @@ OBJ = $(SRC:%.c=$(OBJ_DIR)%.o)
 LIBFT_PATH = ./libft/
 LIBFT = libft.a
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -g #-fsanitize=address,undefined
+CFLAGS = -Wall -Wextra -Werror -g -fsanitize=address,undefined
 LIBFLAGS = -L. $(LIBFT_PATH)$(LIBFT) -lreadline
 
 
