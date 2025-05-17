@@ -1,47 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/17 19:03:09 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:05:08 by kmashkoo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 extern volatile sig_atomic_t	g_exit_status;
-
-void	ft_envpfree(char **envp)
-{
-	int	i;
-
-	i = 0;
-	if (!envp)
-		return ;
-	while (envp[i])
-	{
-		free(envp[i]);
-		envp[i] = NULL;
-		i++;
-	}
-	free(envp);
-	envp = NULL;
-}
-
-char	**ft_dupenvp(char **envp)
-{
-	size_t	count;
-	size_t	i;
-	char	**copy;
-
-	count = 0;
-	while (envp && envp[count])
-		count++;
-	copy = malloc(sizeof(char *) * (count + 1));
-	if (!copy)
-		return (NULL);
-	i = 0;
-	while (i < count)
-	{
-		copy[i] = ft_strdup(envp[i]);
-		if (!copy[i])
-			return (ft_envpfree(copy), NULL);
-		i++;
-	}
-	copy[count] = NULL;
-	return (copy);
-}
 
 static char	*dup_and_shift(char **st, char *nl)
 {
@@ -91,10 +62,10 @@ static void	ft_mainloop(char ***env)
 		}
 		if (*line)
 			add_history(line);
-		segs = parse_input(line, env);
+		segs = ft_parse_input(line, env);
 		if (segs && ft_execute(segs) == -1)
 			break ;
-		free_segments(segs);
+		ft_free_segments(segs);
 		rl_on_new_line();
 		free(line);
 		line = NULL;

@@ -1,5 +1,5 @@
 NAME = minishell
-SRC =	main.c  $(SRC_BUILTIN) $(SRC_EXECUTE) $(SRC_TOKEN) $(SRC_PARSER) $(SRC_SIGNAL)
+SRC =	main.c $(SRC_BUILTIN) $(SRC_EXECUTE) $(SRC_TOKEN) $(SRC_PARSER) $(SRC_SIGNAL) $(SRC_UTILITY)
 SRC_BUILTIN =	builtins/ft_builtins.c builtins/ft_exit.c builtins/ft_unset.c \
 				builtins/ft_export.c builtins/ft_cd.c builtins/ft_echo.c
 
@@ -11,9 +11,12 @@ SRC_TOKEN   =	token/ft_tokenize.c token/utils.c token/exit_utils.c \
 				token/ft_handle_operator.c
 
 SRC_PARSER  =	parse/parse_input.c parse/ft_parse_segments.c  parse/handle_redir.c \
-				parse/write_expanded_line.c parse/handle_heredoc.c parse/ft_expandwildcard.c
+				parse/write_expanded_line.c parse/handle_heredoc.c parse/ft_expandwildcard.c \
+				parse/utils.c
 
 SRC_SIGNAL  =	signals/ft_signal_setup.c signals/heredoc_signals.c
+
+SRC_UTILITY =	utility/ft_dupenvp.c utility/ft_free_segments.c
 
 OBJ_DIR = ./dir/
 OBJ = $(SRC:%.c=$(OBJ_DIR)%.o)

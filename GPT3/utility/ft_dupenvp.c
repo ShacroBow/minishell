@@ -1,51 +1,54 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_make_pipes.c                                    :+:      :+:    :+:   */
+/*   ft_dupenvp.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/17 19:03:48 by kmashkoo          #+#    #+#             */
-/*   Updated: 2025/05/17 19:03:49 by kmashkoo         ###   ########.fr       */
+/*   Created: 2025/05/17 19:04:59 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:05:00 by kmashkoo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void	ft_close_pipes(t_pipe_fd *tab, int count)
+void	ft_envpfree(char **envp)
 {
-	int	k;
+	int	i;
 
-	k = 0;
-	while (k < count)
-	{
-		close(tab[k][0]);
-		close(tab[k][1]);
-		k++;
-	}
-}
-
-t_pipe_fd	*ft_make_pipes(int n)
-{
-	int			i;
-	t_pipe_fd	*tab;
-
-	if (n <= 1)
-		return (NULL);
-	tab = malloc(sizeof(t_pipe_fd) * (n - 1));
-	if (!tab)
-		exit(EXIT_FAILURE);
 	i = 0;
-	while (i < n - 1)
+	if (!envp)
+		return ;
+	while (envp[i])
 	{
-		if (pipe(tab[i]) == -1)
-		{
-			perror("pipe");
-			ft_close_pipes(tab, i);
-			free(tab);
-			return (NULL);
-		}
+		free(envp[i]);
+		envp[i] = NULL;
 		i++;
 	}
-	return (tab);
+	free(envp);
+	envp = NULL;
+}
+
+char	**ft_dupenvp(char **envp)
+{
+	size_t	count;
+	size_t	i;
+	char	**copy;
+
+	count = 0;
+	while (envp && envp[count])
+		count++;
+	copy = malloc(sizeof(char *) * (count + 1));
+	if (!copy)
+		return (NULL);
+	i = 0;
+	while (i < count)
+	{
+		copy[i] = ft_strdup(envp[i]);
+		if (!copy[i])
+			return (ft_envpfree(copy), NULL);
+		i++;
+	}
+	copy[count] = NULL;
+	return (copy);
 }

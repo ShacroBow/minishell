@@ -1,16 +1,28 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_parse_segments.c                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/17 19:04:08 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:04:09 by kmashkoo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-static int	handle_pipe_andor(t_ctx *c, t_tokentype typ)
+static int	ft_handle_pipe_and_or(t_ctx *c, t_tokentype typ)
 {
 	if (c->need_cmd)
-		return (redir_error());
+		return (ft_redir_error());
 	if (typ == TOK_PIPE)
 	{
 		(c->ps->idx)++;
 		c->need_cmd = 1;
 		return (0);
 	}
-	push_pipeline_to_segments(c->seg_head, c->seg_tail, c->cmd_head, typ);
+	ft_push_pipe_to_seg(c->seg_head, c->seg_tail, c->cmd_head, typ);
 	c->cmd_head = NULL;
 	c->cmd_tail = NULL;
 	c->need_cmd = 1;
@@ -18,39 +30,39 @@ static int	handle_pipe_andor(t_ctx *c, t_tokentype typ)
 	return (0);
 }
 
-static int	dispatch_tok(t_ctx *c)
+static int	ft_dispatch_tok(t_ctx *c)
 {
 	t_tokentype	typ;
 
 	typ = c->tok[c->ps->idx].type;
 	if (typ == TOK_LPAREN)
-		return (handle_parenthesis(c->tok, &(c->ps->idx), c->ps->n, \
+		return (ft_handle_parenthesis(c->tok, &(c->ps->idx), c->ps->n, \
 									c->cmd_tail));
 	if (typ == TOK_WORD)
-		return (handle_word(c->tok, &(c->ps->idx), c->cmd_tail));
+		return (ft_handle_word(c->tok, &(c->ps->idx), c->cmd_tail));
 	if (typ == TOK_REDIR_IN || typ == TOK_HEREDOC || typ == TOK_REDIR_OUT || \
 		typ == TOK_APPEND)
-		return (handle_redirection(c->tok, &(c->ps->idx), c->ps->n, \
+		return (ft_handle_redirection(c->tok, &(c->ps->idx), c->ps->n, \
 				c->cmd_tail));
 	(c->ps->idx)++;
 	return (0);
 }
 
-static int	process_iter(t_ctx *c)
+static int	ft_process_iter(t_ctx *c)
 {
 	t_tokentype	typ;
 
 	typ = c->tok[c->ps->idx].type;
 	if (typ == TOK_PIPE || typ == TOK_AND || typ == TOK_OR)
-		return (handle_pipe_andor(c, typ));
+		return (ft_handle_pipe_and_or(c, typ));
 	if (c->need_cmd)
-		new_command_if_needed(&(c->cmd_head), \
+		ft_new_command(&(c->cmd_head), \
 				&(c->cmd_tail), &(c->need_cmd));
 	c->cmd_tail->envp = c->env;
-	return (dispatch_tok(c));
+	return (ft_dispatch_tok(c));
 }
 
-static int	parse_loop(t_ctx *c)
+static int	ft_parse_loop(t_ctx *c)
 {
 	int	ret;
 
@@ -59,18 +71,18 @@ static int	parse_loop(t_ctx *c)
 	c->need_cmd = 1;
 	while (c->ps->idx < c->ps->n)
 	{
-		ret = process_iter(c);
+		ret = ft_process_iter(c);
 		if (ret < 0)
 			return (-1);
 		if (ret > 0)
 			break ;
 	}
 	if (c->cmd_head)
-		push_pipeline_to_segments(c->seg_head, c->seg_tail, c->cmd_head, 0);
+		ft_push_pipe_to_seg(c->seg_head, c->seg_tail, c->cmd_head, 0);
 	return (0);
 }
 
-t_segment	*parse_segments(t_token *tok, t_parse_segments *ps, char **env)
+t_segment	*ft_parse_segments(t_token *tok, t_parse_segments *ps, char **env)
 {
 	t_segment	*seg_head;
 	t_segment	*seg_tail;
@@ -84,12 +96,12 @@ t_segment	*parse_segments(t_token *tok, t_parse_segments *ps, char **env)
 	ctx.env = env;
 	ctx.seg_head = &seg_head;
 	ctx.seg_tail = &seg_tail;
-	res = parse_loop(&ctx);
+	res = ft_parse_loop(&ctx);
 	if (res < 0)
 	{
-		free_segments(seg_head);
+		ft_free_segments(seg_head);
 		if (ctx.cmd_head)
-			free_commands(ctx.cmd_head);
+			ft_free_commands(ctx.cmd_head);
 		return (NULL);
 	}
 	return (seg_head);

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_execute.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/17 19:03:42 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:03:43 by kmashkoo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
 static int	ft_runbuiltin(t_command *cmd, char ***envp)
@@ -42,7 +54,7 @@ int	ft_execute(t_segment *seg)
 				&& !cmd->subshell)
 			{
 				if (ft_runbuiltin(cmd, seg->envp))
-					return (free_segments(seg), -1);
+					return (ft_free_segments(seg), -1);
 			}
 			else
 				ft_run_pipeline(cmd, seg);

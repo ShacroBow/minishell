@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handle_redir.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/17 19:04:11 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:04:12 by kmashkoo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-int	write_value(int fd, const char *s)
+int	ft_write_value(int fd, const char *s)
 {
 	if (s)
 		while (*s)
@@ -9,7 +21,7 @@ int	write_value(int fd, const char *s)
 	return (0);
 }
 
-char	*hd_tmp_name(void)
+char	*ft_hd_tmp_name(void)
 {
 	static int	seq;
 	char		*pid_str;
@@ -32,7 +44,7 @@ char	*hd_tmp_name(void)
 	return (res);
 }
 
-static int	set_infile(char *name, t_command *c)
+static int	ft_set_infile(char *name, t_command *c)
 {
 	int	ret;
 
@@ -47,7 +59,7 @@ static int	set_infile(char *name, t_command *c)
 	return (ret);
 }
 
-static int	set_outfile(char *name, t_command *c, int append)
+static int	ft_set_outfile(char *name, t_command *c, int append)
 {
 	free(c->outfile);
 	c->outfile = ft_strdup(name);
@@ -57,20 +69,20 @@ static int	set_outfile(char *name, t_command *c, int append)
 	return (0);
 }
 
-int	handle_redirection(t_token *tk, int *i, int n, t_command *c)
+int	ft_handle_redirection(t_token *tk, int *i, int n, t_command *c)
 {
 	t_tokentype	tp;
 
 	tp = tk[*i].type;
 	(*i)++;
 	if (*i >= n || tk[*i].type != TOK_WORD)
-		return (redir_error());
-	if (tp == TOK_REDIR_IN && set_infile(tk[*i].value, c) == -1)
+		return (ft_redir_error());
+	if (tp == TOK_REDIR_IN && ft_set_infile(tk[*i].value, c) == -1)
 		return (-1);
-	if (tp == TOK_HEREDOC && handle_here_doc(tk, i, c) == -1)
+	if (tp == TOK_HEREDOC && ft_handle_heredoc(tk, i, c) == -1)
 		return (-1);
 	if ((tp == TOK_REDIR_OUT || tp == TOK_APPEND) && \
-		set_outfile(tk[*i].value, c, tp == TOK_APPEND) == -1)
+		ft_set_outfile(tk[*i].value, c, tp == TOK_APPEND) == -1)
 		return (-1);
 	(*i)++;
 	return (0);

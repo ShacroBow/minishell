@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_expandwildcard.c                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/17 19:04:05 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:04:06 by kmashkoo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-int	match_pattern(const char *p, const char *t)
+static int	ft_match_pattern(const char *p, const char *t)
 {
 	if (*p == '\0')
 		return (*t == '\0');
@@ -8,30 +20,18 @@ int	match_pattern(const char *p, const char *t)
 	{
 		while (*(p + 1) == '*')
 			p++;
-		if (match_pattern(p + 1, t))
+		if (ft_match_pattern(p + 1, t))
 			return (1);
-		if (*t && match_pattern(p, t + 1))
+		if (*t && ft_match_pattern(p, t + 1))
 			return (1);
 		return (0);
 	}
 	if (*p == *t && *t)
-		return (match_pattern(p + 1, t + 1));
+		return (ft_match_pattern(p + 1, t + 1));
 	return (0);
 }
 
-void	free_match_tab(char **tab)
-{
-	int	i;
-
-	if (!tab)
-		return ;
-	i = 0;
-	while (tab[i])
-		free(tab[i++]);
-	free(tab);
-}
-
-int	add_match(char ***tab, int *cnt, const char *name)
+static int	ft_add_match(char ***tab, int *cnt, const char *name)
 {
 	char	**tmp;
 	int		i;
@@ -55,7 +55,7 @@ int	add_match(char ***tab, int *cnt, const char *name)
 	return (0);
 }
 
-void	sort_matches(char **tab, int n)
+static void	ft_sort_matches(char **tab, int n)
 {
 	int		i;
 	int		j;
@@ -79,7 +79,7 @@ void	sort_matches(char **tab, int n)
 	}
 }
 
-char	**expand_wildcard(const char *pat)
+char	**ft_expand_wildcard(const char *pat)
 {
 	DIR				*d;
 	struct dirent	*e;
@@ -97,13 +97,13 @@ char	**expand_wildcard(const char *pat)
 		e = readdir(d);
 		if (!e || (!(pat[0] == '.') && e->d_name[0] == '.'))
 			continue ;
-		if (match_pattern(pat, e->d_name))
-			if (add_match(&tab, &cnt, e->d_name) == -1)
-				return (closedir(d), free_match_tab(tab), NULL);
+		if (ft_match_pattern(pat, e->d_name))
+			if (ft_add_match(&tab, &cnt, e->d_name) == -1)
+				return (closedir(d), ft_free_tab(tab), NULL);
 	}
 	closedir(d);
 	if (!tab)
 		return (NULL);
-	sort_matches(tab, cnt);
+	ft_sort_matches(tab, cnt);
 	return (tab);
 }

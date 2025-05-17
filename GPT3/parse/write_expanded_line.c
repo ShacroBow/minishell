@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   write_expanded_line.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/17 19:04:21 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:04:22 by kmashkoo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
-static char	*get_env_val(char **env, const char *key, size_t klen)
+static char	*ft_get_env_val(char **env, const char *key, size_t klen)
 {
 	while (env && *env)
 	{
@@ -11,7 +23,7 @@ static char	*get_env_val(char **env, const char *key, size_t klen)
 	return (getenv(ft_substr(key, 0, klen)));
 }
 
-static int	write_status(int fd)
+static int	ft_write_status(int fd)
 {
 	char	*val;
 	int		res;
@@ -19,12 +31,12 @@ static int	write_status(int fd)
 	val = ft_itoa(g_exit_status);
 	if (!val)
 		return (-1);
-	res = write_value(fd, val);
+	res = ft_write_value(fd, val);
 	free(val);
 	return (res);
 }
 
-static int	handle_dollar(char *ln, size_t *i, char **env, int fd)
+static int	ft_handle_dollar(char *ln, size_t *i, char **env, int fd)
 {
 	size_t	j;
 	size_t	klen;
@@ -33,20 +45,20 @@ static int	handle_dollar(char *ln, size_t *i, char **env, int fd)
 	if (ln[*i + 1] == '?')
 	{
 		*i += 2;
-		return (write_status(fd));
+		return (ft_write_status(fd));
 	}
 	j = *i + 1;
 	while (ft_isalnum(ln[j]) || ln[j] == '_')
 		j++;
 	klen = j - *i - 1;
-	val = get_env_val(env, ln + *i + 1, klen);
-	if (write_value(fd, val) == -1)
+	val = ft_get_env_val(env, ln + *i + 1, klen);
+	if (ft_write_value(fd, val) == -1)
 		return (-1);
 	*i = j;
 	return (0);
 }
 
-int	write_expanded_line(char *ln, char **env, int fd)
+int	ft_write_expanded_line(char *ln, char **env, int fd)
 {
 	size_t	i;
 
@@ -55,7 +67,7 @@ int	write_expanded_line(char *ln, char **env, int fd)
 	{
 		if (ln[i] == '$')
 		{
-			if (handle_dollar(ln, &i, env, fd) == -1)
+			if (ft_handle_dollar(ln, &i, env, fd) == -1)
 				return (-1);
 			continue ;
 		}

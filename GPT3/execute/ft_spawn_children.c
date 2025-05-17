@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_spawn_children.c                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/17 19:03:53 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:03:54 by kmashkoo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../minishell.h"
 
 static void	child_redir(t_command *c)
@@ -71,7 +83,7 @@ static int	child_exec(t_command *c, int idx, int n, char **env)
 
 static void	ft_childrenfree(t_command *cmds, t_segment *seg, pid_t *pid, int ex)
 {
-	free_commands(cmds);
+	ft_free_commands(cmds);
 	ft_envpfree(*(seg->envp));
 	free(seg);
 	free(pid);
