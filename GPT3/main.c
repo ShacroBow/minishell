@@ -12,9 +12,11 @@ void	ft_envpfree(char **envp)
 	while (envp[i])
 	{
 		free(envp[i]);
+		envp[i] = NULL;
 		i++;
 	}
 	free(envp);
+	envp = NULL;
 }
 
 char	**ft_dupenvp(char **envp)
@@ -74,7 +76,7 @@ static char	*ft_readline(const char *prompt)
 	return (line);
 }
 
-static void	ft_mainloop(char **env)
+static void	ft_mainloop(char ***env)
 {
 	char		*line;
 	t_segment	*segs;
@@ -89,7 +91,7 @@ static void	ft_mainloop(char **env)
 		}
 		if (*line)
 			add_history(line);
-		segs = parse_input(line, &env);
+		segs = parse_input(line, env);
 		if (segs && ft_execute(segs) == -1)
 			break ;
 		free_segments(segs);
@@ -119,7 +121,7 @@ int	main(int argc, char **argv, char **envp)
 		exit(EXIT_FAILURE);
 	}
 	ft_signal_setup();
-	ft_mainloop(env);
+	ft_mainloop(&env);
 	g_exit_status = g_exit_status & 0xFF;
 	rl_clear_history();
 	ft_envpfree(env);

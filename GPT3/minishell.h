@@ -138,6 +138,8 @@ int			write_value(int fd, const char *s);
 int			write_expanded_line(char *ln, char **env, int fd);
 int			handle_here_doc(t_token *tk, int *idx, t_command *c);
 char		*hd_tmp_name(void);
+char		**expand_wildcard(const char *pat);
+
 
 
 void		free_commands(t_command *cmd);
@@ -177,7 +179,6 @@ void		ft_signals_print_handler(int print);
 
 void		ft_signal_setup(void);
 
-//valgrind --suppressions=file.supp --leak-check=full --show-leak-kinds=all
-// --track-fds=yes --track-origins=yes ./minishell
+//valgrind --suppressions=file.supp --leak-check=full --show-leak-kinds=all --track-origins=yes ./minishell
 
 #endif
