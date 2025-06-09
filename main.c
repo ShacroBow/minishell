@@ -1,93 +1,101 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/17 19:03:09 by kmashkoo          #+#    #+#             */
+/*   Updated: 2025/05/17 19:05:08 by kmashkoo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "minishell.h"
 
+extern volatile sig_atomic_t	g_exit_status;
 
-extern int g_signal;
-
-// char *find_binary(const char *cmd, char **envp)
-// {
-	
-// }
-char **ft_getenv(char **envp)
+static char	*dup_and_shift(char **st, char *nl)
 {
-	char	**data;
-	int		i;
-	int		j;
+	char	*line;
 
-	i = 0;
-	while (envp[i])
-		i++;
-	data = malloc((i + 1) * sizeof(char *));
-	data[i] = NULL;
-	while (i)
-	{
-		i--;
-		j = 0;
-		data[i] = malloc((ft_strlen(envp[i]) + 2) * sizeof(char));
-		while (envp[i][++j] != '\0')
-			data[i][j] = envp[i][j];
-		data[i][0] = envp[i][0];
-		data[i][j] = '\0';
-	}
-	return (data);
+	*nl = '\0';
+	line = ft_strdup(*st);
+	if (!line)
+		return (NULL);
+	ft_memmove(*st, nl + 1, ft_strlen(nl + 1) + 1);
+	return (line);
 }
 
-
-void	ft_init(t_data *data, char **envp)
+static char	*ft_readline(const char *prompt)
 {
-	int i;
+	static char	*stash;
+	char		*nl;
+	char		*line;
 
-	i = 0;
-	data->envp = ft_getenv(envp);
-	while (envp[i])
+	while (!stash || !*stash)
 	{
-		printf("envp[%d]:%s\n", i, envp[i]);
-		printf("data[%d]:%s\n", i, data->envp[i]);
-		i++;
+		free(stash);
+		stash = readline(prompt);
+		if (!stash)
+			return (NULL);
 	}
+	nl = ft_strchr(stash, '\n');
+	if (nl)
+		return (dup_and_shift(&stash, nl));
+	line = stash;
+	stash = NULL;
+	return (line);
 }
 
-
-int main (int argc, char **argv, char **envp)
+static void	ft_mainloop(char ***env)
 {
-	t_data	data;
-	char	*prompt;
-	char	*input;
+	char		*line;
+	t_segment	*segs;
 
-	if (argc > 1 && argv)
-	{
-		// ft_putstr_fd("minishell does not accept arguments", 2);
-		return (EXIT_FAILURE);
-	}
-	// ft_signalhandle();
-	ft_init(&data, envp);
-	prompt = "Minishell>";
-	int i = 0;
-	char ptr[1000];
 	while (1)
 	{
-		input = readline(prompt);
-		add_history(input);
-		//add ft_parse here.
-		
-		//replace with ft_execute
-		if (ft_strcmp(input, "exit") == 0)
+		line = ft_readline("minishell$ ");
+		if (!line)
 		{
-			free(input);
-			printf("bye\n");
+			write(1, "exit\n", 5);
 			break ;
 		}
-		if (ft_strcmp(input, "pwd") == 0)
-			printf("%s\n", getcwd(ptr, 600));
-		else
-		{
-			printf("%2d[%s]\n", i, input);
-		}
-		//replace with ft_execute
+		if (*line)
+			add_history(line);
+		segs = ft_parse_input(line, env);
+		if (segs && ft_execute(segs) == -1)
+			break ;
+		ft_free_segments(segs);
 		rl_on_new_line();
-		i++;
-		free(input);
+		free(line);
+		line = NULL;
+		g_exit_status = g_exit_status & 0xFF;
 	}
-	
-	return (0);
+	free(line);
+}
+
+int	main(int argc, char **argv, char **envp)
+{
+	char		**env;
+
+	(void)argv;
+	g_exit_status = 0;
+	if (argc != 1)
+	{
+		ft_putstr_fd("minishell: no arguments supported\n", STDERR_FILENO);
+		return (EXIT_FAILURE);
+	}
+	env = ft_dupenvp(envp);
+	if (!env)
+	{
+		ft_putstr_fd("minishell: env memory alloc failed\n", STDERR_FILENO);
+		exit(EXIT_FAILURE);
+	}
+	ft_signal_setup();
+	ft_mainloop(&env);
+	g_exit_status = g_exit_status & 0xFF;
+	rl_clear_history();
+	ft_envpfree(env);
+	ft_signals_print_handler(1);
+	return (g_exit_status);
 }

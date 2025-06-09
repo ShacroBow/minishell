@@ -6,7 +6,7 @@
 /*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 19:04:11 by kmashkoo          #+#    #+#             */
-/*   Updated: 2025/05/17 19:04:12 by kmashkoo         ###   ########.fr       */
+/*   Updated: 2025/05/18 14:21:56 by kmashkoo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ char	*ft_hd_tmp_name(void)
 	char		*tmp;
 	char		*res;
 
-	pid_str = ft_itoa(getpid());
+	pid_str = ft_itoa(0);
 	seq_str = ft_itoa(seq++);
 	if (!pid_str || !seq_str)
 		return (free(pid_str), free(seq_str), NULL);

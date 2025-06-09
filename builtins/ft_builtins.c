@@ -6,7 +6,7 @@
 /*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 19:03:27 by kmashkoo          #+#    #+#             */
-/*   Updated: 2025/05/17 19:03:28 by kmashkoo         ###   ########.fr       */
+/*   Updated: 2025/05/18 14:16:19 by kmashkoo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@ static int	ft_pwd(void)
 
 	if (getcwd(buf, sizeof(buf)))
 	{
-		write(1, buf, strlen(buf));
-		write(1, "\n", 1);
+		ft_putstr_fd(buf, STDOUT_FILENO);
+		ft_putstr_fd("\n", STDOUT_FILENO);
 		return (0);
 	}
 	perror("pwd");

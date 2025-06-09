@@ -191,7 +191,4 @@ void		ft_signals_print_handler(int print);
 
 void		ft_signal_setup(void);
 
-//valgrind --suppressions=file.supp --leak-check=full --show-leak-kinds=all
-// --track-origins=yes ./minishell
-
 #endif

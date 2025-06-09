@@ -11,13 +11,14 @@ SRC = ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isspace.c\
 	ft_lstnew.c ft_lstadd_front.c ft_lstsize.c \
 	ft_lstlast.c ft_lstadd_back.c ft_lstdelone.c ft_lstclear.c \
 	ft_lstiter.c ft_lstmap.c ft_waste_time.c ft_quicksort.c \
-	ft_realloc.c ft_strcmp.c ft_atoi_base.c
+	ft_realloc.c ft_strcmp.c ft_atoi_base.c ft_strndup.c \
+	ft_atol.c
 
 OBJ = $(SRC:.c=.o)
 CC = cc
 AR = ar
 ARFLAGS = rcs
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -Werror -g #-fsanitize=address,undefined
 
 all: $(NAME)
 

@@ -6,7 +6,7 @@
 /*   By: kmashkoo <kmashkoo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/04 11:45:06 by kmashkoo          #+#    #+#             */
-/*   Updated: 2025/04/18 17:50:57 by kmashkoo         ###   ########.fr       */
+/*   Updated: 2025/05/10 21:49:01 by kmashkoo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@ size_t	ft_strlcat(char *dst, const char *src, size_t size);
 size_t	ft_strlcpy(char *dst, const char *src, size_t size);
 int		ft_memcmp(const void *s1, const void *s2, size_t n);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
-int		ft_strcmp(const char *s1, const char *s2);
 int		ft_atoi(const char *nptr);
 int		ft_tolower(int c);
 int		ft_toupper(int c);
@@ -73,8 +72,15 @@ long	ft_waste_time(unsigned int iterations);
 int		*ft_quicksort(int *arr, int len);
 /*passing ptr as null will give a malloc of new_size*/
 void	*ft_realloc(void *ptr, size_t old_size, size_t new_size, size_t type);
+/* should work just like strcmp */
+int		ft_strcmp(const char *s1, const char *s2);
 /* accepts all atoi inputs and more 
 infinite '-' reading and pick your own base max 16*/
-int	ft_atoi_base(const char *str, int base);
+int		ft_atoi_base(const char *str, int base);
+/* same as strdup but only copy upto n chars. */
+char	*ft_strndup(const char *s, size_t n);
+/* same as atoi_base for special behaviour and atoi for normal behaviour
+len counts how many digits were consumed.*/
+long	ft_atol(const char *nptr, int *len);
 
 #endif
